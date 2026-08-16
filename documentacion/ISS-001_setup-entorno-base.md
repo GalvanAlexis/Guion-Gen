@@ -16,16 +16,16 @@ el esqueleto de la aplicación Streamlit con la paleta oscura LLA y navegación 
 
 ## Criterios de Aceptación
 
-- [ ] `ffmpeg` disponible en PATH del sistema (verificación con `ffmpeg -version`)
-- [ ] Entorno virtual Python 3.11+ creado en `.venv/`
-- [ ] `requirements.txt` con todas las dependencias fijadas con versión
-- [ ] Estructura de carpetas completa según arquitectura del plan maestro
-- [ ] `app.py` corre sin errores con `streamlit run app.py`
-- [ ] Sidebar visible con las 5 pestañas navegables (sin contenido real aún)
-- [ ] Paleta de colores LLA aplicada (fondo `#0a0a10`, acento `#8B5CF6`)
-- [ ] Barra de estado inferior visible con indicadores de APIs
-- [ ] `.env.example` creado con todas las variables necesarias
-- [ ] `.gitignore` configurado (excluye `.env`, `.venv/`, `output/`, `temp/`)
+- [x] `ffmpeg` disponible en PATH del sistema (verificación con `ffmpeg -version`)
+- [x] Entorno virtual Python 3.11+ creado en `.venv/`
+- [x] `requirements.txt` con todas las dependencias fijadas con versión
+- [x] Estructura de carpetas completa según arquitectura del plan maestro
+- [x] `app.py` corre sin errores con `streamlit run app.py`
+- [x] Sidebar visible con las 5 pestañas navegables (sin contenido real aún)
+- [x] Paleta de colores LLA aplicada (fondo `#0a0a10`, acento `#8B5CF6`)
+- [x] Barra de estado inferior visible con indicadores de APIs
+- [x] `.env.example` creado con todas las variables necesarias
+- [x] `.gitignore` configurado (excluye `.env`, `.venv/`, `output/`, `temp/`)
 
 ## Archivos a Crear / Modificar
 

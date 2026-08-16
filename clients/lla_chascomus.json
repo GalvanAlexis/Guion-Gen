@@ -1,67 +1,3 @@
-# ISS-018 — Perfil de Marca LLA Chascomus
-
-**Tipo:** `chore`
-**Sesión:** 1 (transversal)
-**Prioridad:** Alta
-**Dependencias:** ISS-001
-**Branch:** `feature/ISS-018_perfil-marca-lla`
-
----
-
-## Descripción
-
-Crear el perfil de marca completo para LLA Chascomus en `clients/lla_chascomus.json`.
-Este archivo es la fuente de verdad de todas las preferencias de estilo, temas
-frecuentes, hashtags, plantillas de guiones y configuraciones de tono para el cliente.
-Todos los módulos del sistema lo leen para personalizar el contenido generado.
-
-## Criterios de Aceptación
-
-- [x] Archivo JSON válido en `clients/lla_chascomus.json`
-- [x] Paleta de colores completa (primario, secundario, fondo, texto, alerta)
-- [x] Tipografías configuradas
-- [x] Tono base y restricciones de estilo definidas (sin emojis en tono serio)
-- [x] Lista de hashtags fijos por red social
-- [x] Lista de al menos 10 temas frecuentes para el selector de la UI
-- [x] Plantillas de prompts predefinidas para cada tipo de contenido político
-- [x] Configuración de logo (nombre del archivo esperado en `clients/assets/`)
-- [x] El archivo carga correctamente desde `settings.py`
-
-## Archivos a Crear / Modificar
-
-### 🎯 Target Files Permitidos
-
-- [NEW] `clients/lla_chascomus.json`
-- [NEW] `clients/assets/` (carpeta para logo y assets de marca)
-- [MODIFY] `src/config/settings.py` (cargar el perfil del cliente por defecto)
-
-### 🚫 Acciones Prohibidas (Guardrails)
-
-- Prohibido incluir información personal o datos privados en el perfil
-- Prohibido hardcodear API keys en este archivo
-- Prohibido usar emojis en los campos de tono "serio" y "confrontacional"
-
-### 🧪 Quality Gate Determinista
-
-```powershell
-cd "c:\Users\PC Blado\Desktop\BladoPC\Dev\Guion-Gen"
-.venv\Scripts\python -c "
-import json
-with open('clients/lla_chascomus.json', 'r', encoding='utf-8') as f:
-    perfil = json.load(f)
-campos = ['nombre', 'paleta', 'tipografia', 'tono_base', 'hashtags_fijos', 'temas_frecuentes', 'plantillas']
-for campo in campos:
-    assert campo in perfil, f'Falta campo requerido: {campo}'
-assert len(perfil['temas_frecuentes']) >= 10, 'Menos de 10 temas frecuentes'
-print(f'OK: Perfil LLA Chascomus válido con {len(perfil[\"temas_frecuentes\"])} temas')
-"
-```
-
----
-
-## Estructura Completa del Perfil
-
-```json
 {
   "id": "lla_chascomus",
   "nombre": "LLA Chascomus",
@@ -74,18 +10,18 @@ print(f'OK: Perfil LLA Chascomus válido con {len(perfil[\"temas_frecuentes\"])}
     "facebook": "LLA Chascomus"
   },
   "paleta": {
-    "primario":    "#8B5CF6",
-    "secundario":  "#F59E0B",
-    "fondo":       "#0a0a10",
-    "texto":       "#F8FAFC",
-    "muted":       "#94A3B8",
-    "alerta":      "#EF4444",
-    "borde":       "rgba(139,92,246,0.2)"
+    "primario": "#8B5CF6",
+    "secundario": "#F59E0B",
+    "fondo": "#0a0a10",
+    "texto": "#F8FAFC",
+    "muted": "#94A3B8",
+    "alerta": "#EF4444",
+    "borde": "rgba(139,92,246,0.2)"
   },
   "tipografia": {
-    "titulo":  "Outfit",
-    "cuerpo":  "Inter",
-    "codigo":  "JetBrains Mono"
+    "titulo": "Outfit",
+    "cuerpo": "Inter",
+    "codigo": "JetBrains Mono"
   },
   "tono_base": "serio, directo, político, sin emojis en tono confrontacional",
   "restricciones": [
@@ -96,10 +32,10 @@ print(f'OK: Perfil LLA Chascomus válido con {len(perfil[\"temas_frecuentes\"])}
     "Nunca insultar directamente a personas, atacar ideas y gestiones"
   ],
   "hashtags_fijos": {
-    "general":   ["#LLA", "#LibertadAvanza", "#Chascomus"],
-    "milei":     ["#Milei", "#JavierMilei", "#LLA"],
-    "local":     ["#Chascomus", "#LLAChascomus", "#BuenosAires"],
-    "economia":  ["#LibertadEconómica", "#Superávit", "#AjusteFiscal"],
+    "general": ["#LLA", "#LibertadAvanza", "#Chascomus"],
+    "milei": ["#Milei", "#JavierMilei", "#LLA"],
+    "local": ["#Chascomus", "#LLAChascomus", "#BuenosAires"],
+    "economia": ["#LibertadEconómica", "#Superávit", "#AjusteFiscal"],
     "seguridad": ["#Seguridad", "#Chascomus"]
   },
   "temas_frecuentes": [
@@ -163,4 +99,3 @@ print(f'OK: Perfil LLA Chascomus válido con {len(perfil[\"temas_frecuentes\"])}
     "tamano_footer_px": 55
   }
 }
-```
