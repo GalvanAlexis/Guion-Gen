@@ -20,13 +20,14 @@ sin emojis en el tono confrontacional, con datos duros y estructura argumentativ
 
 ## Criterios de Aceptación
 
-- [ ] Módulo `tiktok_reels.py` genera guion técnico en 2 columnas (VOZ / VISUAL)
-- [ ] Módulo `twitter_threads.py` genera hilo de 5 a 10 tweets con gancho inicial
-- [ ] Módulo `social_posts.py` genera carrusel con estructura P.A.S.C. e IG copy largo
-- [ ] Todos los prompts aceptan: texto fuente, tema, tono, duración, perfil de cliente
-- [ ] Tono configurable: "confrontacional", "educativo", "motivacional", "urgente"
-- [ ] Integración con el perfil `clients/lla_chascomus.json` (hashtags, estilo, temas)
-- [ ] Resultado de cada prompt es un dict estructurado (no texto plano sin formato)
+- [x] Prompt TikTok: estructura en 2 columnas (VOZ y VISUAL) por bloque de tiempo
+- [x] Prompt TikTok: incluye indicación de B-Roll, texto en pantalla, efectos y duración
+- [x] Prompt X/Twitter: genera hilos de 5 a 10 tweets con gancho fuerte en el tweet 1
+- [x] Prompt X/Twitter: tweets ≤ 280 caracteres, numerados [1/N]
+- [x] Prompt IG/FB: estructura carrusel (1 gancho + 2-4 problema/agitación + 1 solución + 1 CTA)
+- [x] Prompt IG/FB: texto para imagen (corto, legible) + caption completo
+- [x] Todos los prompts respetan las directivas del cliente activo (restricciones, tono, hashtags)
+- [x] Todos los prompts retornan JSON parseable y estructurado
 
 ## Archivos a Crear / Modificar
 

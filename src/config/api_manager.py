@@ -199,8 +199,25 @@ class APIManager:
             parsed_data = json.loads(clean_json)
             res["data"] = parsed_data
             return res
-        except json.JSONDecodeError as err:
-            raise ValueError(f"Error parseando JSON devuelto por el modelo ({res['provider']}): {str(err)}\nTexto recibido:\n{raw_text}")
+        except json.JSONDecodeError:
+            # Fallback 1: Intentar con ast.literal_eval si el modelo usó sintaxis Python
+            import ast
+            try:
+                parsed_data = ast.literal_eval(clean_json)
+                if isinstance(parsed_data, dict):
+                    res["data"] = parsed_data
+                    return res
+            except Exception:
+                pass
+
+            # Fallback 2: Reemplazar comillas simples por dobles en strings
+            try:
+                fixed_json = re.sub(r"(?<=[:\[,\s])'([^']+)'(?=[,\s\]\}])", r'"\1"', clean_json)
+                parsed_data = json.loads(fixed_json)
+                res["data"] = parsed_data
+                return res
+            except Exception as err:
+                raise ValueError(f"Error parseando JSON devuelto por el modelo ({res['provider']}): {str(err)}\nTexto recibido:\n{raw_text}")
 
 # Instancia singleton global
 api_manager = APIManager()
