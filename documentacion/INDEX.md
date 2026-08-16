@@ -14,7 +14,7 @@
 | [ISS-002](./ISS-002_motor-transcripcion-dual.md) | Motor de transcripción dual (Groq Whisper → faster-whisper) | `completado` | Alta |
 | [ISS-003](./ISS-003_audio-extractor.md) | Audio Extractor (FFmpeg + yt-dlp) | `completado` | Alta |
 | [ISS-004](./ISS-004_markdown-builder.md) | Markdown Builder (exportación .md estructurado) | `completado` | Alta |
-| [ISS-005](./ISS-005_ui-tab-fuente.md) | UI Pestaña 1 — FUENTE (ingesta y transcripción) | `pendiente` | Alta |
+| [ISS-005](./ISS-005_ui-tab-fuente.md) | UI Pestaña 1 — FUENTE (ingesta y transcripción) | `completado` | Alta |
 
 ## Sesión 2 — Fábrica de Guiones
 

@@ -16,18 +16,18 @@ transcripción y visualiza el resultado. Es el punto de entrada al pipeline comp
 
 ## Criterios de Aceptación
 
-- [ ] Tres modos de ingesta con selector visual: "Subir archivo", "URL YouTube", "Pegar texto"
-- [ ] Drag & Drop para archivos (formatos: MP4, MKV, MOV, MP3, WAV, M4A)
-- [ ] Input de URL con validación básica (debe comenzar con http/https)
-- [ ] Textarea para pegar texto directamente (bypass de transcripción)
-- [ ] Botón "Transcribir" que lanza el pipeline completo con spinner de progreso
-- [ ] Indicador de motor activo: "Usando Groq Whisper" o "Usando motor local"
-- [ ] Visor de transcripción con timestamps resaltados en color acento
-- [ ] Selector de rango de tiempo (slider doble) para visualizar subsecciones
-- [ ] Botón "Exportar .md" → descarga el archivo Markdown
-- [ ] Botón "Enviar a Guión" → guarda los segmentos en estado de sesión y navega a pestaña 2
-- [ ] Input de nombre de proyecto (requerido antes de transcribir)
-- [ ] Estadísticas visibles: duración, palabras, segmentos, motor usado, tiempo de proceso
+- [x] Tres modos de ingesta con selector visual: "Subir archivo", "URL YouTube", "Pegar texto"
+- [x] Drag & Drop para archivos (formatos: MP4, MKV, MOV, MP3, WAV, M4A)
+- [x] Input de URL con validación básica (debe comenzar con http/https)
+- [x] Textarea para pegar texto directamente (bypass de transcripción)
+- [x] Botón "Transcribir" que lanza el pipeline completo con spinner de progreso
+- [x] Indicador de motor activo: "Usando Groq Whisper" o "Usando motor local"
+- [x] Visor de transcripción con timestamps resaltados en color acento
+- [x] Selector de rango de tiempo (slider doble) para visualizar subsecciones
+- [x] Botón "Exportar .md" → descarga el archivo Markdown
+- [x] Botón "Enviar a Guión" → guarda los segmentos en estado de sesión y navega a pestaña 2
+- [x] Input de nombre de proyecto (requerido antes de transcribir)
+- [x] Estadísticas visibles: duración, palabras, segmentos, motor usado, tiempo de proceso
 
 ## Archivos a Crear / Modificar
 

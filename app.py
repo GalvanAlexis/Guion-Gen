@@ -32,16 +32,21 @@ render_header()
 # Navegación en Barra Lateral
 with st.sidebar:
     st.markdown("### 🧭 Navegación")
+    tab_options = [
+        "🎙 1. FUENTE (Ingesta)",
+        "📄 2. GUION (Fábrica)",
+        "🖼 3. VISUAL (Carruseles)",
+        "✂ 4. MEDIA (Clips/Subs)",
+        "📋 5. BIBLIOTECA (Historial)"
+    ]
+    current_index = st.session_state.get("active_tab_index", 0)
+    if current_index >= len(tab_options):
+        current_index = 0
+
     selected_tab = st.radio(
         "Módulos de la Fábrica:",
-        [
-            "🎙 1. FUENTE (Ingesta)",
-            "📄 2. GUION (Fábrica)",
-            "🖼 3. VISUAL (Carruseles)",
-            "✂ 4. MEDIA (Clips/Subs)",
-            "📋 5. BIBLIOTECA (Historial)"
-        ],
-        index=0
+        tab_options,
+        index=current_index
     )
 
     st.markdown("---")
