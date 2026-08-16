@@ -1,0 +1,30 @@
+# Entornos virtuales
+.venv/
+env/
+venv/
+ENV/
+
+# Variables de entorno y credenciales
+.env
+.env.local
+.env.*.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Archivos temporales y salidas
+temp/*
+!temp/.gitkeep
+output/*
+!output/.gitkeep
+
+# IDE y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
