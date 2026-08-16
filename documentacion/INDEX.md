@@ -10,7 +10,7 @@
 
 | Issue | Título | Estado | Prioridad |
 |---|---|---|---|
-| [ISS-001](./ISS-001_setup-entorno-base.md) | Setup del entorno base (FFmpeg, Python, estructura) | `pendiente` | Alta |
+| [ISS-001](./ISS-001_setup-entorno-base.md) | Setup del entorno base (FFmpeg, Python, estructura) | `completado` | Alta |
 | [ISS-002](./ISS-002_motor-transcripcion-dual.md) | Motor de transcripción dual (Groq Whisper → faster-whisper) | `pendiente` | Alta |
 | [ISS-003](./ISS-003_audio-extractor.md) | Audio Extractor (FFmpeg + yt-dlp) | `pendiente` | Alta |
 | [ISS-004](./ISS-004_markdown-builder.md) | Markdown Builder (exportación .md estructurado) | `pendiente` | Alta |
@@ -47,7 +47,7 @@
 
 | Issue | Título | Estado | Prioridad |
 |---|---|---|---|
-| [ISS-018](./ISS-018_perfil-marca-lla.md) | Perfil de marca LLA Chascomus (clients/lla_chascomus.json) | `pendiente` | Alta |
+| [ISS-018](./ISS-018_perfil-marca-lla.md) | Perfil de marca LLA Chascomus (clients/lla_chascomus.json) | `completado` | Alta |
 
 ---
 
