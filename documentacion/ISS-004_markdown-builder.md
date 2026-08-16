@@ -17,14 +17,14 @@ de guiones (ISS-008).
 
 ## Criterios de Aceptación
 
-- [ ] Genera archivo `.md` con frontmatter YAML con metadatos del proyecto
-- [ ] Incluye tabla de contenidos con los primeros 10 segmentos como índice
-- [ ] Transcripción completa con timestamps `[MM:SS]` al inicio de cada bloque
-- [ ] Separación visual cada 5 minutos con `---` y cabecera del minuto
-- [ ] Función para extraer solo el texto plano de un rango `[inicio_seg, fin_seg]`
-- [ ] Función para extraer los N segmentos con texto más largo ("golden nuggets")
-- [ ] Archivo guardado en `output/{proyecto}/transcripcion.md`
-- [ ] Archivo también retornado como string para previsualización en la UI
+- [x] Genera archivo `.md` con frontmatter YAML con metadatos del proyecto
+- [x] Incluye tabla de contenidos con los primeros 10 segmentos como índice
+- [x] Transcripción completa con timestamps `[MM:SS]` al inicio de cada bloque
+- [x] Separación visual cada 5 minutos con `---` y cabecera del minuto
+- [x] Función para extraer solo el texto plano de un rango `[inicio_seg, fin_seg]`
+- [x] Función para extraer los N segmentos con texto más largo ("golden nuggets")
+- [x] Archivo guardado en `output/{proyecto}/transcripcion.md`
+- [x] Archivo también retornado como string para previsualización en la UI
 
 ## Archivos a Crear / Modificar
 
