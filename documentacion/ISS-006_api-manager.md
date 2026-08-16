@@ -17,14 +17,14 @@ de disponibilidad de cada API para mostrarlo en la barra de estado de la UI.
 
 ## Criterios de Aceptación
 
-- [ ] `api_manager.py` expone función `generate(prompt, system_prompt)` unificada
-- [ ] Gemini Flash se usa como proveedor primario cuando la key está disponible
-- [ ] Fallback automático a Groq cuando Gemini retorna error 429 o falla
-- [ ] Estado de disponibilidad consultable con `get_status()`
-- [ ] Soporte de `temperature` y `max_tokens` configurables
-- [ ] Log de cada llamada: proveedor usado, tokens consumidos, latencia
-- [ ] Si ambos fallan, levanta excepción con mensaje claro al usuario
-- [ ] Keys leídas desde variables de entorno (nunca hardcodeadas)
+- [x] `api_manager.py` expone función `generate(prompt, system_prompt)` unificada
+- [x] Gemini Flash se usa como proveedor cuando la key está disponible
+- [x] Fallback automático a Groq cuando Gemini no está disponible o falla
+- [x] Estado de disponibilidad consultable con `get_status()`
+- [x] Soporte de `temperature` y `max_tokens` configurables
+- [x] Log de cada llamada: proveedor usado, tokens consumidos, latencia
+- [x] Si ambos fallan, levanta excepción con mensaje claro al usuario
+- [x] Keys leídas desde variables de entorno (nunca hardcodeadas)
 
 ## Archivos a Crear / Modificar
 
