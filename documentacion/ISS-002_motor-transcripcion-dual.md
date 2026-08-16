@@ -19,14 +19,14 @@ una interfaz unificada independientemente del backend usado.
 
 ## Criterios de Aceptación
 
-- [ ] `transcriber.py` expone la función `transcribe(audio_path, language="es")` unificada
-- [ ] Motor Groq Whisper funciona cuando `GROQ_API_KEY` está configurada
-- [ ] Fallback a `faster-whisper` automático cuando Groq falla o la key no existe
-- [ ] Resultado incluye: lista de segmentos con `start`, `end`, `text` en segundos
-- [ ] Soporte de selección de modelo local: `tiny`, `base`, `medium`
-- [ ] Log en consola indica qué motor fue usado
-- [ ] Manejo de errores con mensaje claro en caso de fallo total
-- [ ] Test con archivo de audio de muestra genera transcripción no vacía
+- [x] `transcriber.py` expone la función `transcribe(audio_path, language="es")` unificada
+- [x] Motor Groq Whisper funciona cuando `GROQ_API_KEY` está configurada
+- [x] Fallback a `faster-whisper` automático cuando Groq falla o la key no existe
+- [x] Resultado incluye: lista de segmentos con `start`, `end`, `text` en segundos
+- [x] Soporte de selección de modelo local: `tiny`, `base`, `medium`
+- [x] Log en consola indica qué motor fue usado
+- [x] Manejo de errores con mensaje claro en caso de fallo total
+- [x] Test con archivo de audio de muestra genera transcripción no vacía
 
 ## Archivos a Crear / Modificar
 
