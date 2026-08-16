@@ -20,14 +20,14 @@ Este formato es el óptimo para Whisper y para faster-whisper.
 
 ## Criterios de Aceptación
 
-- [ ] `audio_extractor.py` acepta ruta de archivo local y extrae audio a WAV 16kHz mono
-- [ ] `audio_extractor.py` acepta URL de YouTube y descarga + extrae el audio
-- [ ] Archivos de audio puros (.mp3, .wav) se normalizan directamente sin extracción
-- [ ] Duración del archivo extraído se retorna junto al path
-- [ ] Limpieza automática de archivos temporales al finalizar el proceso
-- [ ] Manejo de error claro si FFmpeg no está instalado
-- [ ] Manejo de error claro si la URL de YouTube no es válida o el video es privado
-- [ ] El path de salida siempre es `temp/{nombre_proyecto}_{timestamp}.wav`
+- [x] `audio_extractor.py` acepta ruta de archivo local y extrae audio a WAV 16kHz mono
+- [x] `audio_extractor.py` acepta URL de YouTube y descarga + extrae el audio
+- [x] Archivos de audio puros (.mp3, .wav) se normalizan directamente sin extracción
+- [x] Duración del archivo extraído se retorna junto al path
+- [x] Limpieza automática de archivos temporales al finalizar el proceso
+- [x] Manejo de error claro si FFmpeg no está instalado
+- [x] Manejo de error claro si la URL de YouTube no es válida o el video es privado
+- [x] El path de salida siempre es `temp/{nombre_proyecto}_{timestamp}.wav`
 
 ## Archivos a Crear / Modificar
 
