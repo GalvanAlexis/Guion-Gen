@@ -44,3 +44,8 @@ def test_transcribe_groq(sample_wav):
     assert isinstance(res["segments"], list)
     assert res["elapsed_seconds"] > 0
     assert "total_words" in res
+
+def test_transcribe_file_not_found():
+    """Verifica que levantar FileNotFoundError cuando el archivo no existe."""
+    with pytest.raises(FileNotFoundError):
+        transcribe("archivo_inexistente_123.wav", engine="groq")

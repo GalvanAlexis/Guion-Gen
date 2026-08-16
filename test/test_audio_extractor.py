@@ -58,3 +58,8 @@ def test_extract_audio_dispatcher(sample_audio):
     assert "test_proj" in res["path"]
     if os.path.exists(res["path"]):
         os.remove(res["path"])
+
+def test_extract_audio_file_not_found():
+    """Verifica que levantar FileNotFoundError cuando el archivo fuente no existe."""
+    with pytest.raises(FileNotFoundError):
+        extract_audio_from_file("archivo_inexistente_999.mp4")

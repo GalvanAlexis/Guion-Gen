@@ -104,6 +104,10 @@ def transcribe(
         model_size: Modelo para faster-whisper local ('tiny', 'base', 'medium').
         engine: 'auto' (Groq -> local fallback), 'groq' o 'local'.
     """
+    audio_file_path = Path(audio_path).resolve()
+    if not audio_file_path.exists():
+        raise FileNotFoundError(f"Archivo de audio no encontrado: {audio_path}")
+
     start_time = time.time()
     engine_used = ""
     segments = []
