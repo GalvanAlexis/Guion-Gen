@@ -30,7 +30,7 @@
 | Issue | Título | Estado | Prioridad |
 |---|---|---|---|
 | [ISS-010](./ISS-010_plantillas-css-lla.md) | Plantillas CSS LLA (lla_dark, alerta_roja, estadistica) | `completado` | Alta |
-| [ISS-011](./ISS-011_css-renderer.md) | CSS Renderer (HTML → Playwright → PNG) | `pendiente` | Alta |
+| [ISS-011](./ISS-011_css-renderer.md) | CSS Renderer (HTML → Playwright → PNG) | `completado` | Alta |
 | [ISS-012](./ISS-012_ai-renderer.md) | AI Renderer (fondos generados por Gemini Imagen) | `pendiente` | Media |
 | [ISS-013](./ISS-013_ui-tab-visual.md) | UI Pestaña 3 — VISUAL (generador de carruseles) | `pendiente` | Alta |
 
