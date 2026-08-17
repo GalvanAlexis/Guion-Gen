@@ -17,14 +17,14 @@ Este es el "Modo IA Creativa" del motor visual.
 
 ## Criterios de Aceptación
 
-- [ ] `ai_renderer.py` genera un fondo PNG a partir de un prompt construido con el tema
-- [ ] El prompt de imagen se construye automáticamente desde el tema y tono del guion
-- [ ] Overlay oscuro aplicado sobre el fondo: `rgba(5, 5, 15, 0.82)` mínimo
-- [ ] Fondo integrado en la plantilla CSS vía variable `bg_image_b64`
-- [ ] Guarda el fondo generado en `temp/{proyecto}/bg_{tema_slug}.png`
-- [ ] Caché local: si se generó un fondo para el mismo tema, reutiliza sin llamar la API
-- [ ] Fallback automático a plantilla CSS pura si Gemini Imagen falla o no está disponible
-- [ ] Costo estimado visible en el log (~$0.002 por imagen)
+- [x] `ai_renderer.py` genera un fondo PNG a partir de un prompt construido con el tema
+- [x] El prompt de imagen se construye automáticamente desde el tema y tono del guion
+- [x] Overlay oscuro aplicado sobre el fondo: `rgba(5, 5, 15, 0.82)` mínimo
+- [x] Fondo integrado en la plantilla CSS vía variable `bg_image_b64`
+- [x] Guarda el fondo generado en `temp/{proyecto}/bg_{tema_slug}.png`
+- [x] Caché local: si se generó un fondo para el mismo tema, reutiliza sin llamar la API
+- [x] Fallback automático a plantilla CSS pura si Gemini Imagen falla o no está disponible
+- [x] Costo estimado visible en el log (~$0.002 por imagen)
 
 ## Archivos a Crear / Modificar
 

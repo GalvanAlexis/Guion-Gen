@@ -160,7 +160,7 @@
   {% block styles %}{% endblock %}
 </head>
 <body>
-  <div class="slide-wrapper">
+  <div class="slide-wrapper" {% if bg_image_b64 %}style="background-image: linear-gradient(rgba(5, 5, 15, 0.85), rgba(5, 5, 15, 0.85)), url('data:image/png;base64,{{ bg_image_b64 }}'); background-size: cover; background-position: center;"{% endif %}>
     <!-- Header -->
     <header class="slide-header">
       <div class="brand-container">
