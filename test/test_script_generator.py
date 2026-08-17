@@ -46,6 +46,44 @@ def test_format_script_to_markdown():
     assert "Hilo para X" in md_x
     assert "Tweet 1/2" in md_x
 
+    ig_data = {
+        "titulo": "Las 3 Claves del Déficit Cero",
+        "total_slides": 2,
+        "slides": [
+            {
+                "slide_num": 1,
+                "tipo": "gancho",
+                "titulo": "¿Déficit Cero en 12 Meses?",
+                "cuerpo": "Un logro sin precedentes.",
+                "dato_destacado": "5% PBI",
+                "pie": "LLA Chascomús"
+            },
+            {
+                "slide_num": 2,
+                "tipo": "cierre",
+                "titulo": "La Libertad Avanza",
+                "cuerpo": "Sumate al cambio.",
+                "dato_destacado": "",
+                "pie": "LLA Chascomús"
+            }
+        ],
+        "copy_caption": "Texto del post con detalles y fundamentos.",
+        "hashtags": ["#LLA", "#Chascomus"]
+    }
+    md_ig = format_script_to_markdown(ig_data, red="instagram")
+    assert "Carrusel para INSTAGRAM" in md_ig
+    assert "Slide 1 — [GANCHO]" in md_ig
+    assert "Copy Caption para la Publicación" in md_ig
+
+def test_generate_script_invalid_network():
+    """Verifica que se levante ValueError ante redes no soportadas."""
+    with pytest.raises(ValueError):
+        generate_script(
+            texto_fuente=SAMPLE_SOURCE,
+            red="red_desconocida_xyz",
+            project_name="test"
+        )
+
 def test_generate_script_tiktok():
     """Verifica la generación completa y guardado de un guion de TikTok."""
     res = generate_script(
