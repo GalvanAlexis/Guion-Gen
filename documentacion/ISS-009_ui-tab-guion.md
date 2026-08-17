@@ -16,21 +16,21 @@ publicar en cada red social, con visualización formateada específica por plata
 
 ## Criterios de Aceptación
 
-- [ ] Verifica que hay segmentos cargados (de ISS-005), si no muestra mensaje de redirección
-- [ ] Selector de red social con iconos: TikTok, X, Instagram, Facebook
-- [ ] Selector de tono: Confrontacional, Educativo, Motivacional, Urgente
-- [ ] Input de tema libre con sugerencias del perfil LLA Chascomus
-- [ ] Slider doble para seleccionar rango de la transcripción a usar
-- [ ] Selector de duración (solo visible para TikTok/Reels): 30s, 60s, 3min
-- [ ] Botón "Generar Guión" con spinner de progreso y nombre del proveedor activo
-- [ ] Botón "Generar 3 Variantes" para comparar opciones
-- [ ] Visualización formateada del resultado según la red:
+- [x] Verifica que hay segmentos cargados (de ISS-005), si no muestra mensaje de redirección
+- [x] Selector de red social con iconos: TikTok, X, Instagram, Facebook
+- [x] Selector de tono: Confrontacional, Educativo, Motivacional, Urgente
+- [x] Input de tema libre con sugerencias del perfil LLA Chascomus
+- [x] Slider doble para seleccionar rango de la transcripción a usar
+- [x] Selector de duración (solo visible para TikTok/Reels): 30s, 60s, 3min
+- [x] Botón "Generar Guión" con spinner de progreso y nombre del proveedor activo
+- [x] Botón "Generar 3 Variantes" para comparar opciones
+- [x] Visualización formateada del resultado según la red:
   - TikTok: tabla 2 columnas VOZ / VISUAL
   - Twitter: preview de tweets con contador de caracteres
   - Instagram/Facebook: preview de slides del carrusel en secuencia
-- [ ] Botón "Copiar al portapapeles" para cada sección generada
-- [ ] Botón "Descargar .md" del guion completo
-- [ ] Botón "Enviar a Visual →" guarda el guion en sesión y navega a pestaña 3
+- [x] Botón "Copiar al portapapeles" para cada sección generada
+- [x] Botón "Descargar .md" del guion completo
+- [x] Botón "Enviar a Visual →" guarda el guion en sesión y navega a pestaña 3
 
 ## Archivos a Crear / Modificar
 
