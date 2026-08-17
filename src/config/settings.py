@@ -14,11 +14,15 @@ TEMP_DIR = BASE_DIR / "temp"
 OUTPUT_DIR = BASE_DIR / "output"
 CLIENTS_DIR = BASE_DIR / "clients"
 TEMPLATES_DIR = SRC_DIR / "templates"
+RESOURCES_DIR = BASE_DIR / "recursos"
+PUBLICATIONS_DIR = BASE_DIR / "publicaciones"
 
 # Asegurar existencia de directorios clave
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 CLIENTS_DIR.mkdir(parents=True, exist_ok=True)
+RESOURCES_DIR.mkdir(parents=True, exist_ok=True)
+PUBLICATIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 # API Keys
 GOOGLE_GEMINI_API_KEY = os.getenv("GOOGLE_GEMINI_API_KEY", "")

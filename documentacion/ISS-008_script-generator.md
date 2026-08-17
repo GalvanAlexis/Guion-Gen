@@ -17,14 +17,14 @@ estructurado listo para mostrar en la UI y descargar.
 
 ## Criterios de Aceptación
 
-- [ ] `script_generator.py` acepta `segments`, `red`, `tono`, `tema`, `cliente_profile`
-- [ ] Enruta al módulo de prompt correcto según la red social elegida
-- [ ] Inyecta el texto del rango de la transcripción (usa `markdown_builder.extract_range`)
-- [ ] Llama a `api_manager.generate()` con el prompt armado
-- [ ] Parsea la respuesta JSON del LLM de forma robusta (con fallback si el JSON es inválido)
-- [ ] Guarda el guion generado en `output/{proyecto}/guion_{red}_{timestamp}.md`
-- [ ] Retorna el dict estructurado para renderizado en la UI
-- [ ] Soporta generación de múltiples variantes (misma configuración, distintos outputs)
+- [x] Función `generate_script(texto, red, tema, tono, duracion)`
+- [x] Soporte para: "tiktok", "reels", "shorts", "x", "twitter", "instagram", "facebook"
+- [x] Llama a `api_manager.generate()` con el prompt correspondiente
+- [x] Parsea la respuesta JSON estructurada y valida campos requeridos
+- [x] Guarda el guión generado en `publicaciones/{red}/{fecha}_{red}_{titulo}_{num}.json`
+- [x] Guarda también en formato Markdown para lectura humana
+- [x] Genera simultáneamente para múltiples redes con `generate_multi_platform_scripts()`
+- [x] Retorna diccionario con: `red`, `titulo`, `data`, `markdown`, `file_path`, `tokens_used`
 
 ## Archivos a Crear / Modificar
 

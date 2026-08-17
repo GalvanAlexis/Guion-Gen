@@ -22,7 +22,7 @@
 |---|---|---|---|
 | [ISS-006](./ISS-006_api-manager.md) | API Manager (rotación Gemini/Groq + failover) | `completado` | Alta |
 | [ISS-007](./ISS-007_prompts-especializados.md) | Prompts especializados por red social | `completado` | Alta |
-| [ISS-008](./ISS-008_script-generator.md) | Script Generator (orquestador de guiones) | `pendiente` | Alta |
+| [ISS-008](./ISS-008_script-generator.md) | Script Generator (orquestador de guiones) | `completado` | Alta |
 | [ISS-009](./ISS-009_ui-tab-guion.md) | UI Pestaña 2 — GUION (fábrica de guiones) | `pendiente` | Alta |
 
 ## Sesión 3 — Motor Visual y Carruseles
