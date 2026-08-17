@@ -16,15 +16,15 @@ Es el núcleo de la generación de carruseles en "Modo CSS Rápido".
 
 ## Criterios de Aceptación
 
-- [ ] `css_renderer.py` recibe un dict con datos del slide y nombre de plantilla
-- [ ] Renderiza correctamente a 1080x1350px (modo 4:5) y 1080x1920px (modo 9:16)
-- [ ] Inspección DOM previa al screenshot (auto-escala si hay overflow de texto)
-- [ ] Genera PNG de alta calidad (`scale=2` → 2160x2700px efectivos)
-- [ ] Soporta procesamiento en lote: lista de slides → lista de PNGs
-- [ ] Guarda los PNG en `output/{proyecto}/carrusel/slide_{N:02d}.png`
-- [ ] Genera ZIP con todos los slides del carrusel listo para descarga
-- [ ] Tiempo de proceso visible en el log (seg/slide)
-- [ ] Playwright usa Chromium headless sin abrir ventana visible
+- [x] `css_renderer.py` recibe un dict con datos del slide y nombre de plantilla
+- [x] Renderiza correctamente a 1080x1350px (modo 4:5) y 1080x1920px (modo 9:16)
+- [x] Inspección DOM previa al screenshot (auto-escala si hay overflow de texto)
+- [x] Genera PNG de alta calidad (`scale=2` → 2160x2700px efectivos)
+- [x] Soporta procesamiento en lote: lista de slides → lista de PNGs
+- [x] Guarda los PNG en `output/{proyecto}/carrusel/slide_{N:02d}.png`
+- [x] Genera ZIP con todos los slides del carrusel listo para descarga
+- [x] Tiempo de proceso visible en el log (seg/slide)
+- [x] Playwright usa Chromium headless sin abrir ventana visible
 
 ## Archivos a Crear / Modificar
 
