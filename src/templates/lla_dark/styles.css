@@ -1,0 +1,90 @@
+:root {
+  --bg: #0a0a10;
+  --text: #F8FAFC;
+  --muted: #94A3B8;
+  --primary: #8B5CF6;
+  --gold: #F59E0B;
+  --card-bg: rgba(255, 255, 255, 0.035);
+  --card-border: rgba(139, 92, 246, 0.22);
+  --border: rgba(139, 92, 246, 0.25);
+  --bg-gradient: radial-gradient(circle at 50% 15%, rgba(139, 92, 246, 0.18), rgba(10, 10, 16, 0.95) 75%);
+  --brand-accent: linear-gradient(135deg, #8B5CF6, #6D28D9);
+  --badge-bg: rgba(139, 92, 246, 0.18);
+  --badge-color: #8B5CF6;
+  --badge-border: rgba(139, 92, 246, 0.35);
+}
+
+.content-container {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vh, 28px);
+}
+
+.title-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slide-title-main {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.9rem, 4.4vh, 3.2rem);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  text-wrap: balance;
+}
+
+.slide-subtitle-accent {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.2vh, 1.6rem);
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--gold);
+  padding: clamp(6px, 1vh, 10px) clamp(14px, 1.8vw, 22px);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: clamp(1rem, 2.2vh, 1.6rem);
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+}
+
+.glass-body-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: clamp(12px, 2vh, 20px);
+  padding: clamp(20px, 3vh, 36px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.body-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 2.2vh, 1.5rem);
+  line-height: 1.55;
+  color: #E2E8F0;
+}
+
+.cta-box {
+  margin-top: 4px;
+  padding: clamp(10px, 1.5vh, 16px) clamp(16px, 2vw, 24px);
+  background: rgba(139, 92, 246, 0.1);
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  font-size: clamp(0.9rem, 1.8vh, 1.2rem);
+  color: #DDD6FE;
+  font-weight: 600;
+}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+{% include "lla_dark/styles.css" %}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-container">
+  {% if dato_destacado %}
+    <div class="stat-pill">{{ dato_destacado }}</div>
+  {% endif %}
+
+  <div class="title-container">
+    {% if subtitulo %}
+      <span class="slide-subtitle-accent">{{ subtitulo }}</span>
+    {% endif %}
+    <h1 class="slide-title-main">{{ titulo | default('Título Principal') }}</h1>
+  </div>
+
+  <div class="glass-body-card">
+    <div class="body-text">{{ cuerpo | default('Texto explicativo del contenido visual.') | safe }}</div>
+  </div>
+
+  {% if cta_texto %}
+    <div class="cta-box">
+      <span>{{ cta_texto }}</span>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

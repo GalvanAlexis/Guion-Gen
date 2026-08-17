@@ -19,16 +19,16 @@ de slide, logo, URL, hashtags y paleta de colores del cliente.
 
 ## Criterios de Aceptación
 
-- [ ] Plantilla `lla_dark`: fondo oscuro, violeta + dorado, tipografía Outfit
-- [ ] Plantilla `alerta_roja`: fondo negro, rojo intenso, texto blanco, urgente
-- [ ] Plantilla `estadistica`: gráficos simples CSS, tablas comparativas, datos duros
-- [ ] Todas las plantillas en formato 1080x1350px (Instagram 4:5)
-- [ ] Versión 9:16 (1080x1920) incluida en cada plantilla (para Stories/Reels)
-- [ ] Logo del cliente inyectable en cabecera (PNG Base64 o ruta local)
-- [ ] Hashtags en pie de página configurables
-- [ ] Número de slide visible en la esquina (slide N / total)
-- [ ] Tipografías cargadas desde Google Fonts (Outfit + Inter)
-- [ ] Responsivo al viewport de Playwright (no usa px absolutos en el layout)
+- [x] Plantilla `lla_dark`: fondo oscuro, violeta + dorado, tipografía Outfit
+- [x] Plantilla `alerta_roja`: fondo negro, rojo intenso, texto blanco, urgente
+- [x] Plantilla `estadistica`: gráficos simples CSS, tablas comparativas, datos duros
+- [x] Todas las plantillas en formato 1080x1350px (Instagram 4:5)
+- [x] Versión 9:16 (1080x1920) incluida en cada plantilla (para Stories/Reels)
+- [x] Logo del cliente inyectable en cabecera (PNG Base64 o ruta local)
+- [x] Hashtags en pie de página configurables
+- [x] Número de slide visible en la esquina (slide N / total)
+- [x] Tipografías cargadas desde Google Fonts (Outfit + Inter)
+- [x] Responsivo al viewport de Playwright (no usa px absolutos en el layout)
 
 ## Archivos a Crear / Modificar
 
