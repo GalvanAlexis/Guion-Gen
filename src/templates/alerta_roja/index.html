@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+{% include "alerta_roja/styles.css" %}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="alert-content-container">
+  <div class="alert-banner">
+    <span>ALERTA POLÍTICA</span>
+  </div>
+
+  <h1 class="alert-title-main">{{ titulo | default('DENUNCIA URGENTE') }}</h1>
+
+  {% if dato_destacado %}
+    <div class="alert-highlight-stat">{{ dato_destacado }}</div>
+  {% endif %}
+
+  <div class="alert-card">
+    <div class="alert-body-text">{{ cuerpo | default('Detalle de la situación y hechos concretos.') | safe }}</div>
+  </div>
+
+  {% if cta_texto %}
+    <div class="alert-cta-box">
+      <span>{{ cta_texto }}</span>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

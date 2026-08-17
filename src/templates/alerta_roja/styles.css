@@ -1,0 +1,93 @@
+:root {
+  --bg: #050508;
+  --text: #FFFFFF;
+  --muted: #A1A1AA;
+  --primary: #EF4444;
+  --gold: #F59E0B;
+  --card-bg: rgba(239, 68, 68, 0.06);
+  --card-border: rgba(239, 68, 68, 0.35);
+  --border: rgba(239, 68, 68, 0.3);
+  --bg-gradient: radial-gradient(circle at 50% 10%, rgba(239, 68, 68, 0.22), rgba(5, 5, 8, 0.98) 70%);
+  --brand-accent: linear-gradient(135deg, #EF4444, #991B1B);
+  --badge-bg: rgba(239, 68, 68, 0.2);
+  --badge-color: #EF4444;
+  --badge-border: rgba(239, 68, 68, 0.5);
+}
+
+.alert-content-container {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2.5vh, 28px);
+}
+
+.alert-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  background: #EF4444;
+  color: #FFFFFF;
+  padding: clamp(6px, 1vh, 10px) clamp(14px, 1.8vw, 22px);
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: clamp(0.9rem, 1.8vh, 1.3rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+}
+
+.alert-title-main {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 4.6vh, 3.4rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.alert-highlight-stat {
+  display: inline-block;
+  color: #EF4444;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: clamp(1.1rem, 2.4vh, 1.8rem);
+  background: rgba(239, 68, 68, 0.12);
+  border-left: 4px solid #EF4444;
+  padding: 8px 16px;
+  border-radius: 0 6px 6px 0;
+  margin-top: 4px;
+}
+
+.alert-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-left: 5px solid #EF4444;
+  border-radius: clamp(10px, 1.8vh, 18px);
+  padding: clamp(20px, 3vh, 34px);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+}
+
+.alert-body-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 2.2vh, 1.5rem);
+  line-height: 1.55;
+  color: #F4F4F5;
+}
+
+.alert-cta-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: clamp(12px, 1.8vh, 20px) clamp(16px, 2vw, 24px);
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1rem, 2vh, 1.35rem);
+  font-weight: 700;
+  color: #FFFFFF;
+  text-align: center;
+}

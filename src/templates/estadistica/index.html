@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+{% include "estadistica/styles.css" %}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stat-content-container">
+  <h1 class="stat-title-main">{{ titulo | default('INDICADORES ECONÓMICOS') }}</h1>
+
+  {% if dato_destacado %}
+    <div class="kpi-hero-card">
+      <div class="kpi-metric-number">{{ dato_destacado }}</div>
+      <div class="kpi-metric-label">{{ subtitulo | default('DATO VERIFICADO') }}</div>
+    </div>
+  {% endif %}
+
+  <div class="stat-body-card">
+    <div class="stat-body-text">{{ cuerpo | default('Análisis e impacto de las medidas implementadas.') | safe }}</div>
+  </div>
+
+  {% if fuente %}
+    <div class="source-tag">Fuente: {{ fuente }}</div>
+  {% endif %}
+</div>
+{% endblock %}
