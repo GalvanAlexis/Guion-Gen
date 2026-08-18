@@ -1,10 +1,10 @@
 # ISS-014 — Media Cutter (Clips .mp4, Subtítulos .srt/.vtt)
 
-**Tipo:** `feature`
+**Estado:** `completado`
 **Sesión:** 4
 **Prioridad:** Alta
 **Dependencias:** ISS-001, ISS-002
-**Branch:** `feature/ISS-014_media-cutter`
+**Branch:** `feature/ISS-014-015_media-cutter-y-ui`
 
 ---
 
@@ -17,14 +17,15 @@ YouTube y plataformas de redes sociales.
 
 ## Criterios de Aceptación
 
-- [ ] Corte de clip `.mp4` dado `[start_sec, end_sec]` sin re-encodear (copia de stream)
-- [ ] Extracción de pista de audio `.mp3` de un rango de tiempo
-- [ ] Normalización de volumen a -16 LUFS (estándar de redes sociales) con FFmpeg
-- [ ] Eliminación de silencios superiores a 2 segundos (opcional, configurable)
-- [ ] Generación de archivo `.srt` sincronizado desde lista de segmentos
-- [ ] Generación de archivo `.vtt` (WebVTT) para YouTube/web
-- [ ] Todos los archivos guardados en `output/{proyecto}/clips/`
-- [ ] Metadatos del clip (duración, tamaño, formato) retornados en el resultado
+- [x] Corte de clip `.mp4` dado `[start_sec, end_sec]` sin re-encodear (copia de stream)
+- [x] Extracción de pista de audio `.mp3` de un rango de tiempo
+- [x] Normalización de volumen a -16 LUFS (estándar de redes sociales) con FFmpeg
+- [x] Eliminación de silencios superiores a 2 segundos (opcional, configurable)
+- [x] Generación de archivo `.srt` sincronizado desde lista de segmentos
+- [x] Generación de archivo `.vtt` (WebVTT) para YouTube/web
+- [x] Todos los archivos guardados en `output/{proyecto}/clips/`
+- [x] Metadatos del clip (duración, tamaño, formato) retornados en el resultado
+
 
 ## Archivos a Crear / Modificar
 
