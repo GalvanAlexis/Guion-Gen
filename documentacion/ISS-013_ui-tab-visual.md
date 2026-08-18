@@ -1,6 +1,6 @@
 # ISS-013 — UI Pestaña 3: VISUAL
 
-**Tipo:** `feature`
+**Estado:** `completado`
 **Sesión:** 3
 **Prioridad:** Alta
 **Dependencias:** ISS-009, ISS-011, ISS-012
@@ -16,16 +16,17 @@ entre "Modo CSS Rápido" y "Modo IA Creativa", vista previa de slides y descarga
 
 ## Criterios de Aceptación
 
-- [ ] Toggle visible entre "CSS Rápido" e "IA Creativa" con descripción de cada modo
-- [ ] Selector de plantilla CSS: lla_dark, alerta_roja, estadistica
-- [ ] Selector de formato: 4:5 (IG/Carrusel), 9:16 (Stories/Reels), 1:1 (Post cuadrado)
-- [ ] Preview de slides generados en una fila horizontal desplazable
-- [ ] Botón "Regenerar slide X" para re-generar un slide individual sin rehacer todo
-- [ ] Indicador de costo estimado visible en "Modo IA" antes de generar
-- [ ] Barra de progreso con estado por slide: "Generando slide 3/5..."
-- [ ] Botón "Descargar slide X" para descarga individual
-- [ ] Botón "Descargar todo (ZIP)" para descarga del carrusel completo
-- [ ] Texto editable de cada slide antes de renderizar (para ajustes manuales)
+- [x] Toggle visible entre "CSS Rápido" e "IA Creativa" con descripción de cada modo
+- [x] Selector de plantilla CSS: lla_dark, alerta_roja, estadistica
+- [x] Selector de formato: 4:5 (IG/Carrusel), 9:16 (Stories/Reels), 1:1 (Post cuadrado)
+- [x] Preview de slides generados en una fila horizontal desplazable
+- [x] Botón "Regenerar slide X" para re-generar un slide individual sin rehacer todo
+- [x] Indicador de costo estimado visible en "Modo IA" antes de generar
+- [x] Barra de progreso con estado por slide: "Generando slide 3/5..."
+- [x] Botón "Descargar slide X" para descarga individual
+- [x] Botón "Descargar todo (ZIP)" para descarga del carrusel completo
+- [x] Texto editable de cada slide antes de renderizar (para ajustes manuales)
+
 
 ## Archivos a Crear / Modificar
 

@@ -363,3 +363,20 @@ def render_script_social(data: dict, red: str = "instagram"):
     if hashtags:
         st.markdown(f"**Hashtags:** `{hashtags}`")
 
+def render_slide_card_preview(slide_num: int, title: str, body: str, stat: str = "", subtitle: str = ""):
+    """Renderiza una tarjeta de previsualización de datos de un slide antes de compilar."""
+    stat_html = f'<div class="slide-stat">{stat}</div>' if stat else ''
+    sub_html = f'<div style="color: #F59E0B; font-size: 0.8rem; margin-bottom: 2px;">{subtitle}</div>' if subtitle else ''
+    st.markdown(f"""
+    <div class="slide-card">
+        <div class="slide-header">
+            <span class="slide-title">Diapositiva #{slide_num}</span>
+        </div>
+        {sub_html}
+        <strong style="color: #F8FAFC; font-size: 0.95rem;">{title}</strong>
+        {stat_html}
+        <div class="slide-body" style="margin-top: 4px;">{body}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
