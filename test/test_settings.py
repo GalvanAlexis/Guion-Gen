@@ -30,5 +30,5 @@ def test_load_client_profile_fallback():
 def test_models_config():
     """Verifica que la configuración de modelos tenga los defaults correctos."""
     assert MODELS["groq"]["whisper"] == "whisper-large-v3"
-    assert MODELS["gemini"]["text"] == "gemini-2.0-flash"
+    assert MODELS["gemini"]["text"] == "gemini-3.6-flash"
     assert MODELS["whisper_local"]["device"] == "cpu"

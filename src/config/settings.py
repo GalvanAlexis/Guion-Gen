@@ -31,7 +31,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 # Modelos configurados
 MODELS = {
     "gemini": {
-        "text": "gemini-2.0-flash",
+        "text": "gemini-3.6-flash",
     },
     "groq": {
         "text": "openai/gpt-oss-120b",
