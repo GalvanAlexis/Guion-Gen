@@ -34,7 +34,7 @@ MODELS = {
         "text": "gemini-2.0-flash",
     },
     "groq": {
-        "text": "llama-3.3-70b-versatile",
+        "text": "openai/gpt-oss-120b",
         "whisper": "whisper-large-v3",
     },
     "whisper_local": {

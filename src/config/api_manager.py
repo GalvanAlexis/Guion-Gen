@@ -24,11 +24,11 @@ class APIManager:
     def _get_gemini_client(self):
         """Retorna cliente de Google GenAI si la key está configurada."""
         key = os.getenv("GOOGLE_GEMINI_API_KEY", GOOGLE_GEMINI_API_KEY)
-        if not key or not key.startswith("AIzaSy"):
+        if not key or len(key.strip()) < 10:
             return None
         try:
             from google import genai
-            return genai.Client(api_key=key)
+            return genai.Client(api_key=key.strip())
         except Exception:
             return None
 
@@ -36,7 +36,7 @@ class APIManager:
         """Retorna el estado de conexión y disponibilidad de cada proveedor."""
         groq_available = bool(os.getenv("GROQ_API_KEY", GROQ_API_KEY))
         gemini_key = os.getenv("GOOGLE_GEMINI_API_KEY", GOOGLE_GEMINI_API_KEY)
-        gemini_available = bool(gemini_key and gemini_key.startswith("AIzaSy"))
+        gemini_available = bool(gemini_key and len(gemini_key.strip()) >= 10)
 
         active_provider = "groq" if groq_available else ("gemini" if gemini_available else "none")
 
@@ -55,7 +55,8 @@ class APIManager:
         }
 
     def _call_groq(self, prompt: str, system_prompt: str = "", temperature: float = 0.7, max_tokens: int = 4096) -> dict:
-        """Ejecuta inferencia a través de Groq (LLaMA 3.3 70B)."""
+        """Ejecuta inferencia a través de Groq (modelo configurado en settings.MODELS)."""
+        # Nota: el modelo activo se configura en src/config/settings.py → MODELS["groq"]["text"]
         client = self._get_groq_client()
         if not client:
             raise ValueError("GROQ_API_KEY no disponible o inválida.")
@@ -91,7 +92,7 @@ class APIManager:
         """Ejecuta inferencia a través de Google Gemini Flash."""
         client = self._get_gemini_client()
         if not client:
-            raise ValueError("GOOGLE_GEMINI_API_KEY no disponible o requiere formato AIzaSy.")
+            raise ValueError("GOOGLE_GEMINI_API_KEY no configurada o inválida. Configurá una API key de Google AI Studio en .env")
 
         model = MODELS["gemini"]["text"]
         start_time = time.time()
