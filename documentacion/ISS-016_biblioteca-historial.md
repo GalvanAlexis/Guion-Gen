@@ -1,6 +1,6 @@
 # ISS-016 — Sistema de Biblioteca e Historial
 
-**Tipo:** `feature`
+**Estado:** `completado`
 **Sesión:** 4
 **Prioridad:** Media
 **Dependencias:** ISS-001
@@ -16,14 +16,15 @@ sistema de etiquetas y exportación de proyecto completo como ZIP.
 
 ## Criterios de Aceptación
 
-- [ ] `biblioteca.py` mantiene un índice JSON en `output/biblioteca.json`
-- [ ] Cada proyecto se registra con: nombre, fecha, red social, tono, tema, archivos generados
-- [ ] Soporte de etiquetas por proyecto: "Milei", "LLA", "Chascomus", "Economía", etc.
-- [ ] Función de búsqueda por nombre, fecha o etiqueta
-- [ ] Exportación de proyecto completo: todos los archivos en un ZIP descargable
-- [ ] Eliminación de proyecto con confirmación (borra archivos del disco)
-- [ ] El índice se actualiza automáticamente al finalizar cada pipeline exitoso
-- [ ] Función para cargar un proyecto anterior y restaurar su estado en sesión
+- [x] `biblioteca.py` mantiene un índice JSON en `output/biblioteca.json`
+- [x] Cada proyecto se registra con: nombre, fecha, red social, tono, tema, archivos generados
+- [x] Soporte de etiquetas por proyecto: "Milei", "LLA", "Chascomus", "Economía", etc.
+- [x] Función de búsqueda por nombre, fecha o etiqueta
+- [x] Exportación de proyecto completo: todos los archivos en un ZIP descargable
+- [x] Eliminación de proyecto con confirmación (borra archivos del disco)
+- [x] El índice se actualiza automáticamente al finalizar cada pipeline exitoso
+- [x] Función para cargar un proyecto anterior y restaurar su estado en sesión
+
 
 ## Archivos a Crear / Modificar
 
