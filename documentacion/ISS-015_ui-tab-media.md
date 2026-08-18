@@ -1,10 +1,10 @@
 # ISS-015 — UI Pestaña 4: MEDIA
 
-**Tipo:** `feature`
+**Estado:** `completado`
 **Sesión:** 4
 **Prioridad:** Alta
 **Dependencias:** ISS-005, ISS-014
-**Branch:** `feature/ISS-015_ui-tab-media`
+**Branch:** `feature/ISS-014-015_media-cutter-y-ui`
 
 ---
 
@@ -16,16 +16,17 @@ generar subtítulos sincronizados compatibles con CapCut y YouTube.
 
 ## Criterios de Aceptación
 
-- [ ] Timeline visual con segmentos de transcripción como marcas de tiempo
-- [ ] Selector de rango de corte: inputs de texto `MM:SS` + sliders de ajuste fino
-- [ ] Preview del texto transcripto en el rango seleccionado
-- [ ] Botón "Cortar clip .mp4" con spinner de progreso
-- [ ] Botón "Extraer audio .mp3" con opción de normalizar volumen
-- [ ] Botón "Generar .srt" → descarga subtítulos sincronizados del rango
-- [ ] Botón "Generar .vtt" → descarga subtítulos para YouTube
-- [ ] Toggle "Eliminar silencios largos (>2s)" antes de exportar audio
-- [ ] Lista de clips ya exportados en esta sesión con descarga directa
-- [ ] Estadísticas del corte: duración del clip, tamaño estimado del archivo
+- [x] Timeline visual con segmentos de transcripción como marcas de tiempo
+- [x] Selector de rango de corte: inputs de texto `MM:SS` + sliders de ajuste fino
+- [x] Preview del texto transcripto en el rango seleccionado
+- [x] Botón "Cortar clip .mp4" con spinner de progreso
+- [x] Botón "Extraer audio .mp3" con opción de normalizar volumen
+- [x] Botón "Generar .srt" → descarga subtítulos sincronizados del rango
+- [x] Botón "Generar .vtt" → descarga subtítulos para YouTube
+- [x] Toggle "Eliminar silencios largos (>2s)" antes de exportar audio
+- [x] Lista de clips ya exportados en esta sesión con descarga directa
+- [x] Estadísticas del corte: duración del clip, tamaño estimado del archivo
+
 
 ## Archivos a Crear / Modificar
 

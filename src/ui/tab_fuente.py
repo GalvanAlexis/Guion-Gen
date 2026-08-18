@@ -135,6 +135,11 @@ def render_tab():
             st.session_state["markdown_content"] = md_content
             st.session_state["transcription_stats"] = trans_result
             st.session_state["project_name"] = project_name
+            st.session_state["source_file"] = source_path
+            if source_type != "text":
+                st.session_state["audio_path"] = audio_info.get("path")
+                if audio_info.get("original_file"):
+                    st.session_state["original_media_path"] = audio_info.get("original_file")
 
             progress_box.update(label="¡Transcripción completada con éxito!", state="complete", expanded=False)
             st.rerun()
