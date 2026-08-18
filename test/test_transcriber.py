@@ -49,3 +49,44 @@ def test_transcribe_file_not_found():
     """Verifica que levantar FileNotFoundError cuando el archivo no existe."""
     with pytest.raises(FileNotFoundError):
         transcribe("archivo_inexistente_123.wav", engine="groq")
+
+def test_prepare_audio_chunks_small_file(sample_wav):
+    """Verifica que un archivo pequeño se optimice a MP3 sin fragmentar."""
+    from src.core.transcriber import _prepare_audio_chunks_for_groq
+    chunks = _prepare_audio_chunks_for_groq(sample_wav, max_chunk_duration_sec=600)
+    assert len(chunks) == 1
+    chunk_path, offset, is_temp = chunks[0]
+    assert offset == 0.0
+    assert Path(chunk_path).exists()
+    # Limpieza
+    if is_temp and Path(chunk_path).exists():
+        Path(chunk_path).unlink(missing_ok=True)
+
+def test_prepare_audio_chunks_large_file():
+    """Verifica que un archivo largo se divida en fragmentos proporcionales con offsets correctos."""
+    from src.core.transcriber import _prepare_audio_chunks_for_groq
+    test_long_path = TEMP_DIR / "fixture_long_audio.wav"
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "lavfi",
+        "-i", "sine=frequency=440:duration=15",
+        "-ar", "16000",
+        "-ac", "1",
+        str(test_long_path)
+    ]
+    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    try:
+        # Forzar chunking cada 5 segundos para probar la división
+        chunks = _prepare_audio_chunks_for_groq(str(test_long_path), max_chunk_duration_sec=5)
+        assert len(chunks) == 3
+        assert chunks[0][1] == 0.0
+        assert chunks[1][1] == 5.0
+        assert chunks[2][1] == 10.0
+        for cp, _, is_temp in chunks:
+            assert Path(cp).exists()
+            if is_temp:
+                Path(cp).unlink(missing_ok=True)
+    finally:
+        test_long_path.unlink(missing_ok=True)
+
