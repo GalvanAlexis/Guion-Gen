@@ -5,6 +5,8 @@ headless = true
 enableCORS = false
 enableXsrfProtection = false
 enableWebsocketCompression = false
+maxUploadSize = 10000
+
 
 [theme]
 base = "dark"
