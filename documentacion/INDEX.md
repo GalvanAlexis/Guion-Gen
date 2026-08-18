@@ -40,7 +40,7 @@
 |---|---|---|---|
 | [ISS-014](./ISS-014_media-cutter.md) | Media Cutter (clips .mp4, subtítulos .srt/.vtt) | `completado` | Alta |
 | [ISS-015](./ISS-015_ui-tab-media.md) | UI Pestaña 4 — MEDIA (cortador de clips) | `completado` | Alta |
-| [ISS-016](./ISS-016_biblioteca-historial.md) | Sistema de Biblioteca e Historial | `pendiente` | Media |
+| [ISS-016](./ISS-016_biblioteca-historial.md) | Sistema de Biblioteca e Historial | `completado` | Media |
 | [ISS-017](./ISS-017_ui-tab-biblioteca.md) | UI Pestaña 5 — BIBLIOTECA (gestión de proyectos) | `pendiente` | Media |
 
 ## Transversal
