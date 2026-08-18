@@ -1,6 +1,6 @@
 # ISS-017 — UI Pestaña 5: BIBLIOTECA
 
-**Tipo:** `feature`
+**Estado:** `completado`
 **Sesión:** 4
 **Prioridad:** Media
 **Dependencias:** ISS-016
@@ -16,14 +16,15 @@ permanente de toda la producción de contenido.
 
 ## Criterios de Aceptación
 
-- [ ] Lista de proyectos con buscador por nombre, tema o etiqueta
-- [ ] Cada proyecto muestra: nombre, fecha, red, tono, tema, cantidad de archivos
-- [ ] Expandir proyecto muestra lista de archivos con previsualización de imágenes
-- [ ] Botón "Cargar proyecto" restaura el estado en sesión para continuar trabajando
-- [ ] Botón "Descargar ZIP" exporta todo el proyecto
-- [ ] Botón "Eliminar" con diálogo de confirmación
-- [ ] Filtros por red social, etiqueta y fecha
-- [ ] Estadísticas globales en cabecera: total proyectos, palabras transcritas, imágenes generadas
+- [x] Lista de proyectos con buscador por nombre, tema o etiqueta
+- [x] Cada proyecto muestra: nombre, fecha, red, tono, tema, cantidad de archivos
+- [x] Expandir proyecto muestra lista de archivos con previsualización de imágenes
+- [x] Botón "Cargar proyecto" restaura el estado en sesión para continuar trabajando
+- [x] Botón "Descargar ZIP" exporta todo el proyecto
+- [x] Botón "Eliminar" con diálogo de confirmación
+- [x] Filtros por red social, etiqueta y fecha
+- [x] Estadísticas globales en cabecera: total proyectos, palabras transcritas, imágenes generadas
+
 
 ## Archivos a Crear / Modificar
 
