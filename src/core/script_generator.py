@@ -223,3 +223,21 @@ def generate_multi_platform_scripts(
             project_name=project_name
         )
     return results
+
+def generate_topic_index(texto_fuente: str) -> list[dict]:
+    """
+    Lee la transcripción completa y extrae un índice de los temas clave tratados.
+    Retorna una lista de diccionarios con 'tema' y 'timestamp'.
+    """
+    sys_prompt = (
+        "Eres un analizador de conferencias y videos. "
+        "Tu objetivo es leer una transcripción con timestamps y extraer los 5 a 10 temas principales tratados.\n"
+        "Debes responder ESTRICTAMENTE con un objeto JSON válido con la siguiente estructura:\n"
+        "{\"data\": [{\"tema\": \"Título corto del tema\", \"timestamp\": \"MM:SS\"}, ...]}"
+    )
+    
+    prompt = f"Analiza esta transcripción y extrae el índice de temas:\n\n{texto_fuente[:15000]}"
+    
+    # Llamamos a api_manager
+    res = api_manager.generate_json(prompt=prompt, system_prompt=sys_prompt, temperature=0.2)
+    return res.get("data", [])

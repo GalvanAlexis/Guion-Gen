@@ -169,7 +169,7 @@ def render_tab():
             st.metric("Motor Utilizado", stats.get("engine_used", "Groq Whisper"))
 
         # Acciones de Exportación
-        act1, act2 = st.columns([1, 1])
+        act1, act2, act3 = st.columns([1, 1, 1])
         with act1:
             st.download_button(
                 label="📥 Descargar Transcripción (.md)",
@@ -179,9 +179,32 @@ def render_tab():
                 use_container_width=True
             )
         with act2:
+            btn_indice = st.button("📊 Generar Índice de Temas", use_container_width=True)
+        with act3:
             if st.button("➡️ Continuar a Fábrica de Guiones", use_container_width=True, type="secondary"):
                 st.session_state["active_tab_index"] = 1
                 st.rerun()
+
+        if btn_indice:
+            with st.spinner("Generando índice temático con IA (leyendo transcripción)..."):
+                try:
+                    from src.core.script_generator import generate_topic_index
+                    texto_fuente = st.session_state.get("markdown_content", "")
+                    temas = generate_topic_index(texto_fuente)
+                    st.session_state["topic_index"] = temas
+                except Exception as e:
+                    st.error(f"Error al generar el índice: {e}")
+
+        # Renderizar índice si existe en estado
+        topic_index = st.session_state.get("topic_index")
+        if topic_index:
+            st.markdown("#### 📑 Índice de Temas Tratados")
+            st.info("Utiliza estos timestamps en la **Pestaña 4 (Media)** para recortar los fragmentos exactos.")
+            for t in topic_index:
+                ts = t.get('timestamp', '00:00')
+                tema_txt = t.get('tema', 'Tema')
+                st.markdown(f"**`[{ts}]`** {tema_txt}")
+            st.markdown("---")
 
         # Visor Interactivo de Timestamps
         st.markdown("#### Vista Previa Segmentada")
@@ -189,13 +212,15 @@ def render_tab():
         # Filtro por rango si hay múltiples segmentos con tiempos
         max_time = max((s.get("end", 0.0) for s in segments), default=0.0)
         if max_time > 10.0:
-            rango = st.slider(
-                "Filtrar por rango de tiempo (segundos):",
+            max_time_min = max_time / 60.0
+            rango_min = st.slider(
+                "Filtrar por rango de tiempo (minutos):",
                 min_value=0.0,
-                max_value=max_time,
-                value=(0.0, max_time),
-                step=1.0
+                max_value=max_time_min,
+                value=(0.0, max_time_min),
+                step=0.1
             )
+            rango = (rango_min[0] * 60.0, rango_min[1] * 60.0)
             filtered_segments = [s for s in segments if s.get("end", 0.0) >= rango[0] and s.get("start", 0.0) <= rango[1]]
         else:
             filtered_segments = segments

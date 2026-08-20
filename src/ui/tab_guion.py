@@ -39,12 +39,19 @@ def render_tab():
     with col_cfg:
         st.markdown("#### Configuración de Guión")
         
-        red_opciones = {
-            "TikTok / Reels (9:16 Video Corto)": "tiktok",
-            "X / Twitter (Hilo Viral)": "x",
-            "Instagram (Carrusel P.A.S.C.)": "instagram",
-            "Facebook (Copy Largo / Carrusel)": "facebook"
-        }
+        formato_general = st.radio("Formato principal:", ["🎬 Video (Clips)", "🖼 Imagen / Texto"], horizontal=True)
+
+        if "Video" in formato_general:
+            red_opciones = {
+                "TikTok / Reels / Shorts (9:16 Video Corto)": "tiktok"
+            }
+        else:
+            red_opciones = {
+                "Instagram (Carrusel P.A.S.C.)": "instagram",
+                "X / Twitter (Hilo Viral)": "x",
+                "Facebook (Copy Largo / Carrusel)": "facebook"
+            }
+            
         red_label = st.selectbox("Plataforma destino:", list(red_opciones.keys()))
         red_code = red_opciones[red_label]
 

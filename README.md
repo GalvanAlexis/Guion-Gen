@@ -13,6 +13,20 @@ Fábrica y suite interactiva local de generación de guiones y contenido multime
 
 ---
 
+## Arranque Rápido (Iniciar Servidor)
+
+Para levantar el servidor web local y acceder a la suite interactiva de Guion-Gen, ejecuta el siguiente comando en la raíz del proyecto:
+
+```powershell
+.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+*(Alternativamente: activar el entorno con `.\venv\Scripts\Activate.ps1` y ejecutar `streamlit run app.py`).*
+
+La interfaz abrirá automáticamente en `http://localhost:8501`.
+
+---
+
 ## Documentación Técnica
 
 La especificación completa del proyecto se encuentra en la carpeta [`documentacion/`](./documentacion/):
