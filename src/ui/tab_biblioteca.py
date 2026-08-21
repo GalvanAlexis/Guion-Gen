@@ -1,4 +1,4 @@
-"""Pestaña 5: BIBLIOTECA — Panel Ejecutivo de Historial y Gestión de Proyectos."""
+"""Pestaña 5: ARCHIVO — Historial y Gestión de Proyectos."""
 import os
 from pathlib import Path
 from datetime import datetime
@@ -6,6 +6,7 @@ import streamlit as st
 
 from src.core.biblioteca import biblioteca, Biblioteca
 from src.config.settings import OUTPUT_DIR
+from src.ui.components import render_step_header, render_back_button
 
 
 def compute_library_metrics(proyectos: list[dict]) -> dict:
@@ -41,9 +42,11 @@ def gather_unique_tags(proyectos: list[dict]) -> list[str]:
 
 
 def render_tab():
-    """Renderiza la pestaña interactiva de biblioteca y gestión de proyectos."""
-    st.markdown("### 📚 Biblioteca Central de Proyectos e Historial")
-    st.caption("Consulta el archivo histórico de conferencias transcriptas, guiones ejecutivos, piezas gráficas y clips exportados.")
+    """Renderiza el paso 5 del wizard: archivo histórico de proyectos."""
+    render_step_header(
+        "Archivo de proyectos",
+        "Historial de transcripciones, guiones, carruseles y clips exportados."
+    )
 
     # 1. Cargar proyectos
     proyectos = biblioteca.listar()
@@ -62,13 +65,12 @@ def render_tab():
         st.metric("Clips y Videos", metrics["total_clips"])
 
     st.markdown("---")
-
-    # 3. Barra de Búsqueda y Filtrado
-    st.markdown("#### 🔍 Explorador y Filtros")
+    st.markdown('<p class="step-section-title">Buscar</p>', unsafe_allow_html=True)
     col_q, col_red, col_tag, col_sort = st.columns([2, 1, 1, 1])
 
     with col_q:
-        search_query = st.text_input("Búsqueda libre:", placeholder="Buscar por nombre, tema o palabra clave...", key="bib_search_input")
+        search_query = st.text_input("busqueda", placeholder="Buscar por nombre, tema...",
+                                      key="bib_search_input", label_visibility="collapsed")
 
     with col_red:
         red_filter = st.selectbox("Plataforma:", ["Todas", "TikTok", "X", "Instagram", "Facebook", "General"], key="bib_red_filter")
@@ -94,11 +96,11 @@ def render_tab():
     elif sort_order == "Nombre (A-Z)":
         filtered_projs.sort(key=lambda x: x.get("nombre", "").lower(), reverse=False)
 
-    st.markdown(f"**Resultados encontrados:** `{len(filtered_projs)}` de `{len(proyectos)}` proyectos")
+    st.caption(f"`{len(filtered_projs)}` de `{len(proyectos)}` proyectos")
 
     # 4. Vista de Proyectos Expandibles
     if not filtered_projs:
-        st.info("No se encontraron proyectos con los criterios de búsqueda seleccionados.")
+        st.markdown('<p style="color:#4B5563; font-size:0.875rem;">No se encontraron proyectos con los filtros seleccionados.</p>', unsafe_allow_html=True)
     else:
         for idx, p in enumerate(filtered_projs):
             p_id = p["id"]
@@ -112,7 +114,7 @@ def render_tab():
             p_stats = p.get("stats", {})
 
             # Encabezado del Expander
-            exp_label = f"📁 [{p_red}] {p_nombre} — {p_fecha} ({p_stats.get('palabras', 0)} palabras)"
+            exp_label = f"[{p_red}] {p_nombre} — {p_fecha}"
 
             with st.expander(exp_label, expanded=(idx == 0 and len(filtered_projs) == 1)):
                 st.markdown(f"**Tema:** *{p_tema}* | **Tono:** `{p_tono}` | **Fecha creación:** `{p_fecha}`")
@@ -123,7 +125,7 @@ def render_tab():
                     st.markdown(f'<div style="margin-bottom: 12px;">{tags_html}</div>', unsafe_allow_html=True)
 
                 # Pestañas de Artefactos Internos
-                tab_docs, tab_visual, tab_media = st.tabs(["📄 Guiones y Texto", "🖼 Piezas Gráficas", "🎬 Clips y Subtítulos"])
+                tab_docs, tab_visual, tab_media = st.tabs(["Guiones y Texto", "Piezas Gráficas", "Clips y Subtítulos"])
 
                 # Pestaña 1: Docs & Guiones
                 with tab_docs:
@@ -133,10 +135,10 @@ def render_tab():
                     if trans_file:
                         full_trans = OUTPUT_DIR / trans_file
                         if full_trans.exists():
-                            st.markdown(f"**Transcripción Base:** `{full_trans.name}`")
+                            st.markdown(f"`{full_trans.name}`")
                             with open(full_trans, "rb") as f_tr:
                                 st.download_button(
-                                    label="📥 Descargar Transcripción (.md)",
+                                    label="Descargar transcripción (.md)",
                                     data=f_tr.read(),
                                     file_name=full_trans.name,
                                     mime="text/markdown",
@@ -154,7 +156,7 @@ def render_tab():
                                 with g_col2:
                                     with open(full_g, "rb") as f_g:
                                         st.download_button(
-                                            label="📥 Descargar",
+                                            label="Descargar",
                                             data=f_g.read(),
                                             file_name=full_g.name,
                                             mime="text/markdown",
@@ -198,7 +200,7 @@ def render_tab():
                                 st.video(str(full_clip))
                                 with open(full_clip, "rb") as f_clip:
                                     st.download_button(
-                                        label=f"📥 Descargar {full_clip.name}",
+                                        label=f"Descargar {full_clip.name}",
                                         data=f_clip.read(),
                                         file_name=full_clip.name,
                                         mime="video/mp4",
@@ -212,7 +214,7 @@ def render_tab():
                             if full_sub.exists():
                                 with open(full_sub, "rb") as f_sub:
                                     st.download_button(
-                                        label=f"📝 Descargar {full_sub.name}",
+                                        label=f"Descargar {full_sub.name}",
                                         data=f_sub.read(),
                                         file_name=full_sub.name,
                                         mime="text/plain",
@@ -228,7 +230,7 @@ def render_tab():
                 act_c1, act_c2, act_c3 = st.columns([1, 1, 1])
 
                 with act_c1:
-                    if st.button("🔄 Cargar en Sesión Activa", key=f"btn_load_{p_id}", use_container_width=True):
+                    if st.button("Cargar en sesión", key=f"btn_load_{p_id}", use_container_width=True):
                         st.session_state["project_name"] = p_id
                         # Intentar leer transcripción si existe
                         trans_path = p_archivos.get("transcripcion")
@@ -242,7 +244,7 @@ def render_tab():
                         zip_file_path = biblioteca.exportar_zip(p_id)
                         with open(zip_file_path, "rb") as f_bundle:
                             st.download_button(
-                                label="📦 Descargar Bundle ZIP",
+                                label="Descargar bundle (.zip)",
                                 data=f_bundle.read(),
                                 file_name=f"bundle_{p_id}.zip",
                                 mime="application/zip",
@@ -251,10 +253,10 @@ def render_tab():
                                 type="primary"
                             )
                     except Exception:
-                        st.button("📦 Bundle ZIP no disponible", disabled=True, key=f"zip_na_{p_id}", use_container_width=True)
+                        st.button("Bundle ZIP no disponible", disabled=True, key=f"zip_na_{p_id}", use_container_width=True)
 
                 with act_c3:
-                    with st.popover("🗑️ Eliminar Proyecto"):
+                    with st.popover("Eliminar proyecto"):
                         st.warning(f"¿Estás seguro de eliminar el proyecto '{p_nombre}'?")
                         del_files = st.checkbox("Eliminar también los archivos físicos de disco", value=False, key=f"chk_del_{p_id}")
                         if st.button("Confirmar Eliminación", type="primary", key=f"btn_del_conf_{p_id}"):
@@ -263,3 +265,8 @@ def render_tab():
                             st.rerun()
 
                 st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("---")
+    col_nav1, col_nav2 = st.columns([1, 2])
+    with col_nav1:
+        render_back_button("← Volver a Media", prev_index=3)

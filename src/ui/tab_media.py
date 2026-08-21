@@ -7,6 +7,7 @@ import streamlit as st
 from src.core.media_cutter import MediaCutter, format_timestamp_srt, format_timestamp_vtt
 from src.core.audio_extractor import get_audio_info, check_ffmpeg
 from src.config.settings import TEMP_DIR, OUTPUT_DIR
+from src.ui.components import render_step_header, render_next_button, render_back_button
 
 
 def parse_time_str(time_str: str) -> float:
@@ -62,9 +63,11 @@ def filter_segments_by_range(segments: list[dict], start_sec: float, end_sec: fl
 
 
 def render_tab():
-    """Renderiza la pestaña interactiva de corte de clips y subtitulado."""
-    st.markdown("### ✂ Extractor de Clips y Subtítulos Dinámicos")
-    st.caption("Corta fragmentos de video/audio sin pérdida de calidad y exporta subtítulos sincronizados listos para CapCut, TikTok o YouTube.")
+    """Renderiza el paso 4 del wizard: corte de clips y subtitulado."""
+    render_step_header(
+        "Cortá los clips",
+        "Seleccioná el rango y exportá video, audio o subtítulos sincronizados."
+    )
 
     # 1. Recuperar contexto de sesión
     segments = st.session_state.get("segments", [])
@@ -79,15 +82,16 @@ def render_tab():
         st.session_state["exported_media"] = []
 
     # 2. Detección o Carga de Archivo Multimedia
+    st.markdown('<p class="step-section-title">Archivo fuente</p>', unsafe_allow_html=True)
     col_src1, col_src2 = st.columns([2, 1])
 
     with col_src1:
         if source_file and Path(source_file).exists():
             file_p = Path(source_file)
             size_mb = round(file_p.stat().st_size / (1024 * 1024), 2)
-            st.success(f"Archivo multimedia activo: **{file_p.name}** ({size_mb} MB)")
+            st.success(f"**{file_p.name}** — {size_mb} MB")
         else:
-            st.info("No hay un archivo multimedia activo desde la Pestaña 1. Puedes subir un video/audio aquí:")
+            st.info("No hay un archivo multimedia activo. Subí uno aquí:")
             uploaded = st.file_uploader("Subir video o audio para corte:", type=["mp4", "mkv", "mov", "mp3", "wav", "m4a"])
             if uploaded:
                 dest = TEMP_DIR / uploaded.name
@@ -117,7 +121,7 @@ def render_tab():
     max_duration = max(5.0, max_duration)
 
     st.markdown("---")
-    st.markdown("#### 1. Selección de Rango de Corte")
+    st.markdown('<p class="step-section-title">Rango de corte</p>', unsafe_allow_html=True)
 
     # Inputs de tiempo y slider
     c_t1, c_t2, c_t3 = st.columns([1, 1, 2])
@@ -149,16 +153,16 @@ def render_tab():
     filtered_segs = filter_segments_by_range(segments, start_sec, end_sec)
     texto_rango = " ".join(s.get("text", "").strip() for s in filtered_segs if s.get("text"))
 
-    st.markdown(f"**Duración seleccionada:** `{duracion_clip} s` ({format_time_str(start_sec)} ➔ {format_time_str(end_sec)}) | **Palabras:** `{len(texto_rango.split())}`")
+    st.caption(f"`{duracion_clip}s` — {format_time_str(start_sec)} → {format_time_str(end_sec)} — {len(texto_rango.split())} palabras")
 
-    with st.expander("📝 Ver texto transcripto en el rango seleccionado", expanded=True):
+    with st.expander("Ver texto transcripto en este rango", expanded=True):
         if texto_rango:
-            st.markdown(f'<div class="glass-card" style="font-size: 0.9rem; line-height: 1.5; color: #F1F5F9;">"{texto_rango}"</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:0.875rem; line-height:1.55; color:#CBD5E1;">"{texto_rango}"</div>', unsafe_allow_html=True)
         else:
-            st.caption("No hay texto de transcripción sincronizado para este rango o no se ha realizado transcripción previa.")
+            st.caption("Sin transcripción sincronizada para este rango.")
 
     # 4. Opciones de Procesamiento
-    st.markdown("#### 2. Opciones de Procesamiento")
+    st.markdown('<p class="step-section-title">Opciones</p>', unsafe_allow_html=True)
     op_c1, op_c2, op_c3 = st.columns(3)
     with op_c1:
         opt_normalizar = st.checkbox("Normalizar audio (-16 LUFS)", value=True, help="Estándar para TikTok, Instagram y YouTube.")
@@ -170,19 +174,19 @@ def render_tab():
     st.markdown("<br>", unsafe_allow_html=True)
 
     # 5. Acciones de Corte y Exportación
-    st.markdown("#### 3. Acciones de Exportación")
+    st.markdown('<p class="step-section-title">Exportar</p>', unsafe_allow_html=True)
     act_col1, act_col2, act_col3, act_col4 = st.columns(4)
 
     cutter = MediaCutter()
 
     with act_col1:
-        btn_cut_video = st.button("🎬 Cortar Video MP4", use_container_width=True, type="primary", disabled=(not bool(source_file)))
+        btn_cut_video = st.button("Cortar Video", use_container_width=True, type="primary", disabled=(not bool(source_file)))
     with act_col2:
-        btn_extract_audio = st.button("🎵 Extraer Audio MP3", use_container_width=True, disabled=(not bool(source_file)))
+        btn_extract_audio = st.button("Extraer Audio", use_container_width=True, disabled=(not bool(source_file)))
     with act_col3:
-        btn_export_srt = st.button("📝 Subtítulos .SRT", use_container_width=True, disabled=(not bool(filtered_segs)))
+        btn_export_srt = st.button("Subtítulos .SRT", use_container_width=True, disabled=(not bool(filtered_segs)))
     with act_col4:
-        btn_export_vtt = st.button("🌐 Subtítulos .VTT", use_container_width=True, disabled=(not bool(filtered_segs)))
+        btn_export_vtt = st.button("Subtítulos .VTT", use_container_width=True, disabled=(not bool(filtered_segs)))
 
     # Lógica de Ejecución: Cortar Video
     if btn_cut_video and source_file:
@@ -283,7 +287,7 @@ def render_tab():
 
     # 6. Historial de Recursos Exportados
     st.markdown("---")
-    st.markdown("### 📦 Clips y Subtítulos Exportados en esta Sesión")
+    st.markdown('<p class="step-section-title">Exportados en esta sesión</p>', unsafe_allow_html=True)
 
     exported = st.session_state.get("exported_media", [])
 
@@ -293,7 +297,7 @@ def render_tab():
             item_type = item.get("tipo", "video")
 
             with st.container():
-                st.markdown(f"#### 📁 {item['nombre']} (`{item.get('duration', 0)}s`)")
+                st.markdown(f"**{item['nombre']}** — `{item.get('duration', 0)}s`")
                 
                 exp_c1, exp_c2 = st.columns([2, 1])
 
@@ -317,18 +321,18 @@ def render_tab():
                                 "subtitulos_vtt": "text/vtt"
                             }
                             st.download_button(
-                                label=f"📥 Descargar {item['nombre']}",
+                                label=f"Descargar {item['nombre']}",
                                 data=f_down.read(),
                                 file_name=item["nombre"],
                                 mime=mime_map.get(item_type, "application/octet-stream"),
                                 key=f"dl_item_{idx}",
                                 use_container_width=True
                             )
-                        
+
                         if item.get("srt_path") and Path(item["srt_path"]).exists():
                             with open(item["srt_path"], "rb") as f_srt:
                                 st.download_button(
-                                    label=f"📝 Descargar Subtítulo Aliniado (.srt)",
+                                    label="Descargar subtítulo (.srt)",
                                     data=f_srt.read(),
                                     file_name=Path(item["srt_path"]).name,
                                     mime="text/plain",
@@ -339,4 +343,11 @@ def render_tab():
                 st.markdown("<br>", unsafe_allow_html=True)
 
     else:
-        st.info("Aún no has exportado clips o subtítulos en esta sesión. Selecciona un rango y haz clic en una de las acciones arriba.")
+        st.markdown('<p style="color:#4B5563; font-size:0.875rem;">Seleccioná un rango y exportá para ver los archivos aquí.</p>', unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_nav1, col_nav2 = st.columns([1, 1])
+    with col_nav1:
+        render_back_button("← Volver", prev_index=2)
+    with col_nav2:
+        render_next_button("Siguiente →", next_index=4)

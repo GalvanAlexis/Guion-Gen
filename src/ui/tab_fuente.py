@@ -1,105 +1,158 @@
-"""Pestaña 1: FUENTE — Ingesta de Audio/Video y Transcripción Completa."""
-import os
-import time
-from pathlib import Path
+"""Pestaña 1: FUENTE — Ingesta de Audio/Video y Transcripción."""
 import streamlit as st
 from src.core.audio_extractor import extract_audio
 from src.core.transcriber import transcribe, get_engine_status
 from src.core.markdown_builder import build_markdown, format_timestamp
 from src.config.settings import TEMP_DIR, OUTPUT_DIR
+from src.ui.components import render_step_header, render_next_button
+import json
+
+def _auto_save_state(project_name):
+    if not project_name:
+        return
+    state_to_save = {}
+    keys_to_save = [
+        "segments", "transcription_text", "markdown_content", 
+        "transcription_stats", "project_name", "source_file", 
+        "audio_path", "original_media_path", "topic_index"
+    ]
+    for k in keys_to_save:
+        if k in st.session_state:
+            state_to_save[k] = st.session_state[k]
+    proj_dir = OUTPUT_DIR / project_name
+    proj_dir.mkdir(parents=True, exist_ok=True)
+    with open(proj_dir / "state.json", "w", encoding="utf-8") as f:
+        json.dump(state_to_save, f, ensure_ascii=False)
+
 
 def render_tab():
-    """Renderiza la pestaña de ingesta y transcripción."""
-    st.markdown("### 🎙 Ingesta y Transcripción de Contenido")
-    st.caption("Carga una conferencia, discurso, video de YouTube o pega texto para generar la transcripción estructurada con timestamps.")
+    """Renderiza el paso 1 del wizard: ingesta y transcripción."""
+    render_step_header(
+        "Cargá tu fuente",
+        "Video, audio o texto — lo convertimos en una transcripción estructurada."
+    )
 
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-        project_name = st.text_input(
-            "Nombre del Proyecto:",
-            value=st.session_state.get("project_name", "conferencia_milei_01"),
-            help="Se usará como identificador para guardar la transcripción y guiones."
-        )
-        st.session_state["project_name"] = project_name
-
-        modo_ingesta = st.radio(
-            "Origen del contenido:",
-            ["📁 Subir archivo multimedia", "🔗 URL de YouTube", "📝 Pegar texto directo"],
-            horizontal=True
-        )
-
-        source_path = None
-        source_type = None
-        direct_text = None
-
-        if "Subir archivo" in modo_ingesta:
-            uploaded_file = st.file_uploader(
-                "Arrastrá o seleccioná tu archivo (video o audio):",
-                type=["mp4", "mkv", "mov", "webm", "mp3", "wav", "m4a"],
-                help="Soporta conferencias largas de 50+ minutos."
-            )
-            if uploaded_file is not None:
-                # Guardar en temp
-                temp_upload_path = TEMP_DIR / uploaded_file.name
-                with open(temp_upload_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                source_path = str(temp_upload_path)
-                source_type = "file"
-                st.success(f"Archivo cargado: `{uploaded_file.name}` ({round(uploaded_file.size / (1024*1024), 2)} MB)")
-
-        elif "URL" in modo_ingesta:
-            url_input = st.text_input(
-                "Pegá el enlace del video:",
-                placeholder="https://www.youtube.com/watch?v=..."
-            )
-            if url_input.strip():
-                source_path = url_input.strip()
-                source_type = "url"
-
-        else:
-            direct_text = st.text_area(
-                "Pegá el texto completo de la transcripción:",
-                height=180,
-                placeholder="Pegá aquí el texto si ya cuentas con una transcripción previa..."
-            )
-            if direct_text.strip():
-                source_type = "text"
-
-    with col2:
-        st.markdown("#### Configuración de Motor")
-        engine_status = get_engine_status()
-        
-        motor_opciones = ["Auto (Groq Cloud → Fallback Local)"]
-        if engine_status["groq_available"]:
-            motor_opciones.append("Groq Whisper Cloud (Ultra rápido)")
-        motor_opciones.append("faster-whisper Local (CPU int8)")
-
-        motor_seleccionado = st.selectbox("Motor Speech-to-Text:", motor_opciones)
-        idioma = st.selectbox("Idioma del audio:", ["Español (es)", "Inglés (en)"])
-        lang_code = "es" if "Español" in idioma else "en"
-
-        engine_param = "auto"
-        if "Groq" in motor_seleccionado:
-            engine_param = "groq"
-        elif "Local" in motor_seleccionado:
-            engine_param = "local"
-
+    # ── Trabajos Recientes ───────────────────────────────────────────────────
+    recent_projects = []
+    if OUTPUT_DIR.exists():
+        for proj_dir in OUTPUT_DIR.iterdir():
+            if proj_dir.is_dir() and (proj_dir / "state.json").exists():
+                recent_projects.append(proj_dir.name)
+    
+    if recent_projects:
+        st.markdown('<p class="step-section-title">Trabajos Recientes</p>', unsafe_allow_html=True)
+        col_rec1, col_rec2 = st.columns([3, 1])
+        with col_rec1:
+            recent_sel = st.selectbox("Cargar sesión", [""] + sorted(recent_projects, reverse=True), label_visibility="collapsed")
+        with col_rec2:
+            if st.button("Cargar", use_container_width=True) and recent_sel:
+                with open(OUTPUT_DIR / recent_sel / "state.json", "r", encoding="utf-8") as f:
+                    state_data = json.load(f)
+                    for k, v in state_data.items():
+                        st.session_state[k] = v
+                st.rerun()
         st.markdown("<br>", unsafe_allow_html=True)
-        btn_transcribir = st.button(
-            "🚀 Iniciar Transcripción",
-            use_container_width=True,
-            type="primary",
-            disabled=(source_type is None)
-        )
 
-    # Lógica de Ejecución del Pipeline
+    # ── Nombre del proyecto ───────────────────────────────────────────────────
+    st.markdown('<p class="step-section-title">Proyecto</p>', unsafe_allow_html=True)
+    project_name = st.text_input(
+        "Nombre del proyecto",
+        value=st.session_state.get("project_name", "conferencia_milei_01"),
+        label_visibility="collapsed",
+        placeholder="ej: conferencia_milei_01"
+    )
+    st.session_state["project_name"] = project_name
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Selección de origen ───────────────────────────────────────────────────
+    st.markdown('<p class="step-section-title">Origen del contenido</p>', unsafe_allow_html=True)
+    modo_ingesta = st.radio(
+        "origen",
+        ["Archivo multimedia", "URL de YouTube", "Texto directo"],
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+
+    source_path = None
+    source_type = None
+    direct_text = None
+
+    if "Archivo" in modo_ingesta:
+        uploaded_file = st.file_uploader(
+            "Arrastrá o seleccioná tu archivo (video o audio)",
+            type=["mp4", "mkv", "mov", "webm", "mp3", "wav", "m4a"],
+            label_visibility="collapsed"
+        )
+        if uploaded_file is not None:
+            temp_upload_path = TEMP_DIR / uploaded_file.name
+            with open(temp_upload_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+            source_path = str(temp_upload_path)
+            source_type = "file"
+            st.success(f"`{uploaded_file.name}` cargado ({round(uploaded_file.size / (1024*1024), 2)} MB)")
+
+    elif "YouTube" in modo_ingesta:
+        url_input = st.text_input(
+            "url",
+            placeholder="https://www.youtube.com/watch?v=...",
+            label_visibility="collapsed"
+        )
+        if url_input.strip():
+            source_path = url_input.strip()
+            source_type = "url"
+
+    else:
+        direct_text = st.text_area(
+            "texto",
+            height=160,
+            placeholder="Pegá aquí el texto de la transcripción...",
+            label_visibility="collapsed",
+            key="fuente_direct_text"
+        )
+        if direct_text and direct_text.strip():
+            source_type = "text"
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Configuración de motor ────────────────────────────────────────────────
+    st.markdown('<p class="step-section-title">Motor de transcripción</p>', unsafe_allow_html=True)
+    col_motor, col_lang = st.columns(2)
+
+    with col_motor:
+        engine_status = get_engine_status()
+        motor_opciones = ["Auto (Groq → Local)"]
+        if engine_status["groq_available"]:
+            motor_opciones.append("Groq Whisper Cloud")
+        motor_opciones.append("faster-whisper Local")
+        motor_seleccionado = st.selectbox("Motor", motor_opciones, label_visibility="collapsed")
+
+    with col_lang:
+        idioma = st.selectbox("Idioma", ["Español (es)", "Inglés (en)"], label_visibility="collapsed")
+
+    lang_code = "es" if "Español" in idioma else "en"
+    engine_param = "auto"
+    if "Groq" in motor_seleccionado:
+        engine_param = "groq"
+    elif "Local" in motor_seleccionado:
+        engine_param = "local"
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Botón principal de acción ─────────────────────────────────────────────
+    btn_transcribir = st.button(
+        "Transcribir",
+        use_container_width=True,
+        type="primary",
+        disabled=(source_type is None)
+    )
+
+    # ── Pipeline de procesamiento ─────────────────────────────────────────────
     if btn_transcribir and source_type:
-        progress_box = st.status("Procesando contenido...", expanded=True)
+        progress_box = st.status("Procesando...", expanded=True)
         try:
             if source_type == "text":
                 progress_box.write("Estructurando texto directo...")
-                # Segmento único para texto directo
                 segments = [{"id": 0, "start": 0.0, "end": 0.0, "text": direct_text.strip()}]
                 trans_result = {
                     "engine_used": "Texto Directo",
@@ -111,17 +164,12 @@ def render_tab():
                     "text": direct_text.strip()
                 }
             else:
-                progress_box.write("1. Extrayendo y normalizando audio con FFmpeg a WAV mono 16 kHz...")
+                progress_box.write("Extrayendo audio con FFmpeg...")
                 audio_info = extract_audio(source_path, project_name=project_name)
-                
-                progress_box.write(f"2. Transcribiendo con {motor_seleccionado}...")
-                trans_result = transcribe(
-                    audio_info["path"],
-                    language=lang_code,
-                    engine=engine_param
-                )
+                progress_box.write(f"Transcribiendo con {motor_seleccionado}...")
+                trans_result = transcribe(audio_info["path"], language=lang_code, engine=engine_param)
 
-            progress_box.write("3. Construyendo documento Markdown estructurado...")
+            progress_box.write("Construyendo documento Markdown estructurado...")
             md_content = build_markdown(
                 trans_result["segments"],
                 project=project_name,
@@ -129,7 +177,6 @@ def render_tab():
                 engine_used=trans_result["engine_used"]
             )
 
-            # Persistir en session_state
             st.session_state["segments"] = trans_result["segments"]
             st.session_state["transcription_text"] = trans_result["text"]
             st.session_state["markdown_content"] = md_content
@@ -141,99 +188,121 @@ def render_tab():
                 if audio_info.get("original_file"):
                     st.session_state["original_media_path"] = audio_info.get("original_file")
 
-            progress_box.update(label="¡Transcripción completada con éxito!", state="complete", expanded=False)
+            _auto_save_state(project_name)
+            progress_box.update(label="Transcripción completada", state="complete", expanded=False)
             st.rerun()
 
         except Exception as e:
-            progress_box.update(label=f"Error en el proceso: {str(e)}", state="error")
-            st.error(f"Detalle del error: {str(e)}")
+            progress_box.update(label=f"Error: {str(e)}", state="error")
 
-    # Sección de Resultados
-    st.markdown("---")
-    st.markdown("### 📋 Resultado de la Transcripción")
-
+    # ── Resultados ────────────────────────────────────────────────────────────
     if "segments" in st.session_state and st.session_state["segments"]:
+        st.markdown("---")
         stats = st.session_state.get("transcription_stats", {})
         segments = st.session_state["segments"]
         md_content = st.session_state.get("markdown_content", "")
-        
-        # Tarjetas de Métricas
-        m1, m2, m3, m4 = st.columns(4)
+
+        # Métricas
+        m1, m2, m3 = st.columns(3)
         with m1:
-            st.metric("Total Palabras", f"{stats.get('total_words', len(st.session_state.get('transcription_text', '').split())):,}")
+            st.metric("Palabras", f"{stats.get('total_words', 0):,}")
         with m2:
             st.metric("Segmentos", len(segments))
         with m3:
-            st.metric("Tiempo Proceso", f"{stats.get('elapsed_seconds', 0):.1f} s")
-        with m4:
-            st.metric("Motor Utilizado", stats.get("engine_used", "Groq Whisper"))
+            st.metric("Procesado en", f"{stats.get('elapsed_seconds', 0):.1f}s")
 
-        # Acciones de Exportación
-        act1, act2, act3 = st.columns([1, 1, 1])
-        with act1:
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Acciones secundarias
+        col_dl, col_idx = st.columns(2)
+        with col_dl:
             st.download_button(
-                label="📥 Descargar Transcripción (.md)",
+                label="Descargar (.md)",
                 data=md_content,
                 file_name=f"transcripcion_{st.session_state.get('project_name', 'proyecto')}.md",
                 mime="text/markdown",
                 use_container_width=True
             )
-        with act2:
-            btn_indice = st.button("📊 Generar Índice de Temas", use_container_width=True)
-        with act3:
-            if st.button("➡️ Continuar a Fábrica de Guiones", use_container_width=True, type="secondary"):
-                st.session_state["active_tab_index"] = 1
-                st.rerun()
+        with col_idx:
+            btn_indice = st.button("Generar índice de temas", use_container_width=True)
 
         if btn_indice:
-            with st.spinner("Generando índice temático con IA (leyendo transcripción)..."):
+            with st.spinner("Generando índice temático..."):
                 try:
                     from src.core.script_generator import generate_topic_index
-                    texto_fuente = st.session_state.get("markdown_content", "")
-                    temas = generate_topic_index(texto_fuente)
+                    temas = generate_topic_index(st.session_state.get("markdown_content", ""))
                     st.session_state["topic_index"] = temas
+                    _auto_save_state(st.session_state.get("project_name"))
                 except Exception as e:
-                    st.error(f"Error al generar el índice: {e}")
+                    st.error(f"Error: {e}")
 
-        # Renderizar índice si existe en estado
+        # Índice de temas
         topic_index = st.session_state.get("topic_index")
         if topic_index:
-            st.markdown("#### 📑 Índice de Temas Tratados")
-            st.info("Utiliza estos timestamps en la **Pestaña 4 (Media)** para recortar los fragmentos exactos.")
-            for t in topic_index:
-                ts = t.get('timestamp', '00:00')
-                tema_txt = t.get('tema', 'Tema')
-                st.markdown(f"**`[{ts}]`** {tema_txt}")
-            st.markdown("---")
+            # Compatibilidad con sesión anterior que pudo haber guardado el dict crudo
+            if isinstance(topic_index, dict) and "data" in topic_index:
+                topic_index = topic_index["data"]
 
-        # Visor Interactivo de Timestamps
-        st.markdown("#### Vista Previa Segmentada")
-        
-        # Filtro por rango si hay múltiples segmentos con tiempos
+            st.markdown("---")
+            st.markdown('<p class="step-section-title">Índice de temas</p>', unsafe_allow_html=True)
+            
+            # Si a pesar de todo NO es iterable, lo forzamos a una lista vacía para evitar crasheos
+            if not isinstance(topic_index, (list, tuple)):
+                topic_index = []
+
+            for t in topic_index:
+                if isinstance(t, dict):
+                    ts_list = t.get("timestamps") or [t.get("timestamp", "00:00")]
+                    if isinstance(ts_list, list):
+                        ts = ", ".join(ts_list)
+                    else:
+                        ts = str(ts_list)
+                    tema_txt = t.get("tema", "Tema")
+                else:
+                    ts = "00:00"
+                    tema_txt = str(t)
+                st.markdown(f"`[{ts}]` {tema_txt}")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Visor de transcripción
+        st.markdown('<p class="step-section-title">Vista previa</p>', unsafe_allow_html=True)
         max_time = max((s.get("end", 0.0) for s in segments), default=0.0)
         if max_time > 10.0:
-            max_time_min = max_time / 60.0
+            max_min = max_time / 60.0
             rango_min = st.slider(
-                "Filtrar por rango de tiempo (minutos):",
-                min_value=0.0,
-                max_value=max_time_min,
-                value=(0.0, max_time_min),
-                step=0.1
+                "Rango (minutos)",
+                min_value=0.0, max_value=max_min,
+                value=(0.0, max_min), step=0.1
             )
             rango = (rango_min[0] * 60.0, rango_min[1] * 60.0)
-            filtered_segments = [s for s in segments if s.get("end", 0.0) >= rango[0] and s.get("start", 0.0) <= rango[1]]
+            filtered_segments = [
+                s for s in segments
+                if s.get("end", 0.0) >= rango[0] and s.get("start", 0.0) <= rango[1]
+            ]
         else:
             filtered_segments = segments
 
-        # Render de bloques con estilo Glass
-        visor_container = st.container(height=350)
-        with visor_container:
+        visor = st.container(height=300)
+        with visor:
             for s in filtered_segments:
                 start_ts = format_timestamp(s.get("start", 0.0))
                 st.markdown(
-                    f'<div style="margin-bottom: 8px;"><span class="timestamp-tag">{start_ts}</span> {s.get("text", "")}</div>',
+                    f'<div style="margin-bottom:6px; font-size:0.875rem;">'
+                    f'<span class="timestamp-tag">{start_ts}</span>'
+                    f'{s.get("text", "")}</div>',
                     unsafe_allow_html=True
                 )
 
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Botón de avance
+        render_next_button("Generar guion →", next_index=1)
+
     else:
-        st.info("No hay transcripción activa aún. Carga un archivo o ingresa una URL arriba para comenzar.")
+        st.markdown("""
+        <div style="text-align:center; padding:3rem 1rem; color:#4B5563;">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">🎙</div>
+            <p style="font-size:0.9rem;">Cargá un archivo, pegá una URL o un texto para empezar.</p>
+        </div>
+        """, unsafe_allow_html=True)

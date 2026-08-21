@@ -164,7 +164,8 @@ class APIManager:
         prompt: str,
         system_prompt: str = "",
         temperature: float = 0.5,
-        max_tokens: int = 4096
+        max_tokens: int = 4096,
+        preferred_provider: str = "auto"
     ) -> dict:
         """
         Genera y parsea una respuesta en formato JSON de forma determinista y robusta.
@@ -178,7 +179,8 @@ class APIManager:
             prompt=prompt,
             system_prompt=json_system,
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
+            preferred_provider=preferred_provider
         )
 
         raw_text = res["text"]
