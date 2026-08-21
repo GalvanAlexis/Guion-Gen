@@ -2,115 +2,180 @@
 import streamlit as st
 from src.core.script_generator import generate_script, slugify
 from src.ui.components import (
-    render_script_tiktok,
-    render_script_twitter,
-    render_script_social
+    render_step_header, render_next_button, render_back_button,
+    render_script_tiktok, render_script_twitter, render_script_social
 )
 from src.config.settings import load_client_profile
 
-def render_tab():
-    """Renderiza la pestaña de generación de guiones."""
-    st.markdown("### 📄 Fábrica de Guiones Multicanal")
-    st.caption("Transforma la transcripción en guiones técnicos para TikTok, hilos virales para X y carruseles P.A.S.C. para Instagram/Facebook.")
 
-    # 1. Validación de Ingesta Previa
+def render_tab():
+    """Renderiza el paso 2 del wizard: generación de guiones."""
+    render_step_header(
+        "Generá el guion",
+        "Elegí la plataforma, el tono y dejá que la IA construya el guion."
+    )
+
     segments = st.session_state.get("segments", [])
     transcription_text = st.session_state.get("transcription_text", "")
     project_name = st.session_state.get("project_name", "conferencia_milei_01")
     cliente = st.session_state.get("client", load_client_profile("lla_chascomus"))
 
+    # ── Sin fuente cargada ────────────────────────────────────────────────────
     if not segments and not transcription_text:
-        st.warning("No hay transcripción o contenido fuente cargado todavía.")
-        c1, c2 = st.columns([1, 2])
-        with c1:
-            if st.button("🎙 Ir a Pestaña 1 (FUENTE)", type="primary", use_container_width=True):
-                st.session_state["active_tab_index"] = 0
-                st.rerun()
-        with c2:
-            st.info("O ingresa un texto de prueba directamente abajo para continuar.")
-            direct_input = st.text_area("Texto fuente directo:", height=100, placeholder="Pega un fragmento de discurso aquí...")
+        st.markdown("""
+        <div style="text-align:center; padding:2rem 1rem; color:#4B5563;">
+            <p style="font-size:0.9rem;">Primero necesitás una transcripción.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_btn, col_txt = st.columns([1, 2])
+        with col_btn:
+            render_back_button("← Volver a Fuente", prev_index=0)
+        with col_txt:
+            direct_input = st.text_area(
+                "O pegá texto directo:",
+                height=100,
+                placeholder="Pegá un fragmento de discurso aquí...",
+                key="guion_direct_input"
+            )
             if direct_input.strip():
                 transcription_text = direct_input.strip()
                 st.session_state["transcription_text"] = transcription_text
 
-    col_cfg, col_res = st.columns([1, 1])
+    # ── Columnas de configuración y preview ───────────────────────────────────
+    col_cfg, col_res = st.columns([1, 1], gap="large")
 
-    # 2. Columna Izquierda: Configuración
+    # Columna Izquierda: Configuración
     with col_cfg:
-        st.markdown("#### Configuración de Guión")
-        
-        red_opciones = {
-            "TikTok / Reels (9:16 Video Corto)": "tiktok",
-            "X / Twitter (Hilo Viral)": "x",
-            "Instagram (Carrusel P.A.S.C.)": "instagram",
-            "Facebook (Copy Largo / Carrusel)": "facebook"
-        }
-        red_label = st.selectbox("Plataforma destino:", list(red_opciones.keys()))
+        st.markdown('<p class="step-section-title">Configuración</p>', unsafe_allow_html=True)
+
+        formato_general = st.radio(
+            "Formato",
+            ["Video (Clips)", "Imagen / Texto"],
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+
+        if "Video" in formato_general:
+            red_opciones = {"TikTok / Reels / Shorts (9:16)": "tiktok"}
+        else:
+            red_opciones = {
+                "Instagram (Carrusel P.A.S.C.)": "instagram",
+                "X / Twitter (Hilo Viral)": "x",
+                "Facebook (Carrusel)": "facebook"
+            }
+
+        red_label = st.selectbox("Plataforma", list(red_opciones.keys()),
+                                  label_visibility="collapsed")
         red_code = red_opciones[red_label]
 
         tono_opciones = {
-            "Confrontacional / Alerta (Político)": "confrontacional",
+            "Confrontacional / Alerta": "confrontacional",
             "Educativo / Datos duros": "educativo",
             "Urgente / Denuncia": "urgente",
             "Motivacional": "motivacional"
         }
-        tono_label = st.selectbox("Tono de comunicación:", list(tono_opciones.keys()))
+        if "Video" in formato_general:
+            tono_opciones["Libre"] = "libre"
+
+        tono_label = st.selectbox("Tono", list(tono_opciones.keys()),
+                                   label_visibility="collapsed")
         tono_code = tono_opciones[tono_label]
 
-        # Temas sugeridos desde el perfil del cliente
+        topic_index = st.session_state.get("topic_index", [])
+        if isinstance(topic_index, dict) and "data" in topic_index:
+            topic_index = topic_index["data"]
+        if not isinstance(topic_index, list):
+            topic_index = []
+            
+        opciones_temas = ["[Libre]"]
+        for t in topic_index:
+            if isinstance(t, dict):
+                ts_list = t.get("timestamps") or [t.get("timestamp", "00:00")]
+                if isinstance(ts_list, list):
+                    ts = ", ".join(ts_list)
+                else:
+                    ts = str(ts_list)
+                opciones_temas.append(f"[{ts}] {t.get('tema', '')}")
+            else:
+                opciones_temas.append(str(t))
+
         temas_sugeridos = cliente.get("temas_frecuentes", [])
+        opciones_temas.extend(temas_sugeridos)
+
         tema_seleccionado = st.selectbox(
-            "Temas sugeridos de marca (LLA Chascomús):",
-            ["[Personalizado / Libre]"] + temas_sugeridos
+            "Tema",
+            opciones_temas,
+            label_visibility="collapsed"
         )
 
-        if tema_seleccionado == "[Personalizado / Libre]":
-            tema_final = st.text_input("Tema específico a enfatizar:", placeholder="Ej: Déficit fiscal heredado vs superávit")
+        if tema_seleccionado == "[Libre]":
+            tema_final = st.text_input(
+                "Tema específico",
+                placeholder="Ej: Déficit fiscal heredado vs superávit",
+                label_visibility="collapsed"
+            )
         else:
-            tema_final = st.text_input("Tema específico:", value=tema_seleccionado)
+            tema_final = st.text_input("Tema", value=tema_seleccionado,
+                                        label_visibility="collapsed")
 
-        # Filtro de rango de transcripción si hay timestamps
+        # Rango de transcripción
         texto_a_usar = transcription_text
         if segments:
             max_time = max((s.get("end", 0.0) for s in segments), default=0.0)
             if max_time > 5.0:
                 rango = st.slider(
-                    "Rango de tiempo de la transcripción a usar (segundos):",
-                    min_value=0.0,
-                    max_value=max_time,
-                    value=(0.0, max_time),
-                    step=1.0
+                    "Rango (segundos)",
+                    min_value=0.0, max_value=max_time,
+                    value=(0.0, max_time), step=1.0
                 )
                 filtered = [
-                    s.get("text", "") for s in segments 
+                    s.get("text", "") for s in segments
                     if s.get("end", 0.0) >= rango[0] and s.get("start", 0.0) <= rango[1]
                 ]
                 texto_a_usar = " ".join(filtered).strip()
             else:
                 texto_a_usar = " ".join([s.get("text", "") for s in segments]).strip()
 
-        # Duración condicional para videos cortos
         duracion_val = 60
         if red_code == "tiktok":
             duracion_val = st.select_slider(
-                "Duración estimada (segundos):",
+                "Duración (segundos)",
                 options=[30, 45, 60, 90, 180],
                 value=60
             )
 
         st.markdown("<br>", unsafe_allow_html=True)
-        btn_col1, btn_col2 = st.columns(2)
-        
-        with btn_col1:
-            btn_generar = st.button("✨ Generar Guión", use_container_width=True, type="primary", disabled=(not bool(texto_a_usar)))
-        
-        with btn_col2:
-            btn_variantes = st.button("⚡ 3 Variantes", use_container_width=True, type="secondary", disabled=(not bool(texto_a_usar)))
 
-        # Lógica de Ejecución Simple
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            btn_generar = st.button(
+                "Generar", use_container_width=True, type="primary",
+                disabled=(not bool(texto_a_usar))
+            )
+        with btn_col2:
+            btn_variantes = st.button(
+                "3 Variantes", use_container_width=True, type="secondary",
+                disabled=(not bool(texto_a_usar))
+            )
+
+        topic_timestamp = None
+        if tema_seleccionado != "[Libre]" and tema_seleccionado.startswith("[") and "]" in tema_seleccionado:
+            topic_timestamp = tema_seleccionado.split("]")[0].strip("[")
+
+        first_time = "00:00"
+        if topic_timestamp:
+            first_time_candidate = topic_timestamp.split(",")[0].split("-")[0].strip()
+            if first_time_candidate:
+                first_time = first_time_candidate
+
+        # Generación
         if btn_generar and texto_a_usar:
-            with st.spinner("Generando guión especializado con IA..."):
+            with st.spinner("Generando guion..."):
                 try:
+                    if "Video" in formato_general and topic_timestamp:
+                        st.session_state["media_start_input"] = first_time
+                        
                     res = generate_script(
                         texto_fuente=texto_a_usar,
                         red=red_code,
@@ -118,21 +183,20 @@ def render_tab():
                         tono=tono_code,
                         duracion=duracion_val,
                         cliente=cliente,
-                        project_name=project_name
+                        project_name=project_name,
+                        topic_timestamp=topic_timestamp
                     )
                     st.session_state["guion_actual"] = res
                     st.session_state["guion_variantes"] = None
-                    st.success(f"Guión generado con éxito ({res.get('latency_seconds', 0):.2f}s | {res.get('tokens_used', 0)} tokens)")
+                    st.session_state["visual_slides_data"] = None  # Resetear visual
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Error al generar guión: {str(e)}")
+                    st.error(f"Error: {str(e)}")
 
-        # Lógica de Ejecución 3 Variantes
         if btn_variantes and texto_a_usar:
-            with st.spinner("Generando 3 variantes comparativas..."):
+            with st.spinner("Generando 3 variantes..."):
                 try:
                     variantes = []
-                    # Generar 3 variaciones
                     for i in range(3):
                         var_res = generate_script(
                             texto_fuente=texto_a_usar,
@@ -144,64 +208,66 @@ def render_tab():
                             project_name=project_name
                         )
                         variantes.append(var_res)
-
                     st.session_state["guion_variantes"] = variantes
                     st.session_state["guion_actual"] = variantes[0]
-                    st.success("¡3 Variantes generadas exitosamente!")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Error al generar variantes: {str(e)}")
+                    st.error(f"Error: {str(e)}")
 
-    # 3. Columna Derecha: Vista Previa y Acciones
+    # Columna Derecha: Preview
     with col_res:
-        st.markdown("#### Vista Previa del Guión")
+        st.markdown('<p class="step-section-title">Vista previa</p>', unsafe_allow_html=True)
 
         guion_actual = st.session_state.get("guion_actual")
         variantes = st.session_state.get("guion_variantes")
 
         if variantes and len(variantes) == 3:
-            st.info("Comparando 3 Variantes generadas:")
             tab_v1, tab_v2, tab_v3 = st.tabs(["Variante 1", "Variante 2", "Variante 3"])
-            
             for idx, (tab_v, v_data) in enumerate(zip([tab_v1, tab_v2, tab_v3], variantes)):
                 with tab_v:
                     _render_preview(v_data)
-                    if st.button(f"📌 Seleccionar Variante {idx+1} como Principal", key=f"btn_var_{idx}"):
+                    if st.button(
+                        f"Seleccionar variante {idx+1}",
+                        key=f"btn_var_{idx}",
+                        use_container_width=True
+                    ):
                         st.session_state["guion_actual"] = v_data
                         st.session_state["guion_variantes"] = None
+                        st.session_state["visual_slides_data"] = None
                         st.rerun()
 
         elif guion_actual:
             _render_preview(guion_actual)
-
             st.markdown("---")
-            # Acciones de exportación y transición
-            act1, act2 = st.columns(2)
-            with act1:
-                st.download_button(
-                    label="📥 Descargar Guion (.md)",
-                    data=guion_actual.get("markdown", ""),
-                    file_name=f"{guion_actual.get('red', 'guion')}_{slugify(guion_actual.get('titulo', 'guion'))}_{project_name}.md",
-                    mime="text/markdown",
-                    use_container_width=True
-                )
-            with act2:
-                if st.button("🖼 Enviar a Visual (Pestaña 3) →", use_container_width=True, type="primary"):
-                    st.session_state["active_tab_index"] = 2
-                    st.rerun()
 
-            with st.expander("Ver Markdown Crudo"):
+            st.download_button(
+                label="Descargar (.md)",
+                data=guion_actual.get("markdown", ""),
+                file_name=f"{guion_actual.get('red', 'guion')}_{slugify(guion_actual.get('titulo', 'guion'))}_{project_name}.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
+
+            with st.expander("Ver Markdown"):
                 st.code(guion_actual.get("markdown", ""), language="markdown")
 
         else:
             st.markdown("""
-            <div class="glass-card">
-                <p style="color: #94A3B8; font-style: italic;">Selecciona una plataforma y genera un guión para ver la estructura aquí.</p>
+            <div class="exec-card" style="text-align:center; padding:2rem; color:#4B5563;">
+                <p style="font-size:0.9rem;">El guion aparecerá aquí.</p>
             </div>
             """, unsafe_allow_html=True)
 
+        st.markdown("<hr style='margin:1.5rem 0; border-color:rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
+        col_nav1, col_nav2 = st.columns([1, 1])
+        with col_nav1:
+            render_back_button("← Volver", prev_index=0)
+        with col_nav2:
+            render_next_button("Siguiente →", next_index=2, disabled=not bool(guion_actual))
+
+
 def _render_preview(guion: dict):
-    """Función auxiliar que enruta al renderizador visual correspondiente."""
+    """Enruta al renderizador visual correspondiente."""
     red = guion.get("red", "tiktok").lower()
     data = guion.get("data", {})
 

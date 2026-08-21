@@ -33,9 +33,9 @@ class AIRenderer:
         tema_clean = tema.strip() if tema else "economía y libertad"
 
         return (
-            f"Abstract background art concept, Argentine economic and political theme: {tema_clean}. "
+            f"Concept art, Argentine economic and political theme: {tema_clean}. "
             f"Mood and style: {style_tone}, cinematic volumetric lighting, deep obsidian dark textures, {format_desc}. "
-            "Negative constraints: no text, no words, no typography, no letters, no human faces, no real politicians, no watermark, 8k resolution wallpaper."
+            "High resolution 8k."
         )
 
     def generate_background(
@@ -72,8 +72,9 @@ class AIRenderer:
                 client = genai.Client(api_key=key)
                 aspect_ratio = "3:4" if formato == "4:5" else ("9:16" if formato == "9:16" else "1:1")
 
+                # Llamada directa al modelo
                 result = client.models.generate_images(
-                    model="imagen-3.0-generate-002",
+                    model="imagen-3.0-generate-001",
                     prompt=prompt,
                     config=dict(
                         number_of_images=1,
@@ -89,10 +90,14 @@ class AIRenderer:
                     self.last_latency = round(time.time() - t0, 3)
                     return str(cache_file)
 
-            except Exception:
+            except Exception as e:
+                import traceback
+                print(f"[ERROR Gemini IA] Intento {intento+1} falló: {e}")
+                traceback.print_exc()
+                if "429" in str(e) or "404" in str(e) or intento == 1:
+                    raise RuntimeError(f"Fallo en API de Gemini Imagen: {str(e)}")
                 time.sleep(1.0)
 
-        # Fallback si fallan los 2 intentos
         return None
 
     def get_background_b64(

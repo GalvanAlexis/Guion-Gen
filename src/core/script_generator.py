@@ -101,7 +101,8 @@ def generate_script(
     tono: str = "confrontacional",
     duracion: int = 60,
     cliente: dict = None,
-    project_name: str = "proyecto_general"
+    project_name: str = "proyecto_general",
+    topic_timestamp: str = None
 ) -> dict:
     """
     Genera un guion especializado, lo parsea, lo formatea a Markdown y lo guarda en disco.
@@ -148,9 +149,13 @@ def generate_script(
     else:
         raise ValueError(f"Red social '{red}' no soportada. Use 'tiktok', 'x', 'instagram' o 'facebook'.")
 
+    user_prompt = prompt_pkg["user"]
+    if topic_timestamp:
+        user_prompt += f"\n\n[INSTRUCCIÓN CRÍTICA] El tema seleccionado por el usuario aparece en el timestamp exacto [{topic_timestamp}]. Por favor, focalizá el análisis y las citas textuales basándote en lo que se dice a partir de ese minuto del discurso original."
+
     # Llamada a LLM a través de APIManager
     res_llm = api_manager.generate_json(
-        prompt=prompt_pkg["user"],
+        prompt=user_prompt,
         system_prompt=prompt_pkg["system"],
         temperature=0.4
     )
@@ -206,7 +211,8 @@ def generate_multi_platform_scripts(
     tono: str = "confrontacional",
     duracion: int = 60,
     cliente: dict = None,
-    project_name: str = "proyecto_general"
+    project_name: str = "proyecto_general",
+    topic_timestamp: str = None
 ) -> dict:
     """
     Genera guiones para múltiples plataformas en una sola llamada.
@@ -220,6 +226,41 @@ def generate_multi_platform_scripts(
             tono=tono,
             duracion=duracion,
             cliente=cliente,
-            project_name=project_name
+            project_name=project_name,
+            topic_timestamp=topic_timestamp
         )
     return results
+
+def generate_topic_index(texto_fuente: str) -> list[dict]:
+    """
+    Lee la transcripción completa y extrae un índice de los temas clave tratados.
+    Retorna una lista de diccionarios con 'tema' y 'timestamps'.
+    """
+    sys_prompt = (
+        "Eres un analizador de conferencias y videos. "
+        "Tu objetivo es leer una transcripción con timestamps y extraer los 5 a 10 temas principales tratados.\n"
+        "Si un tema se retoma en varios momentos distintos del video, agrúpalos en una lista de rangos.\n"
+        "Debes responder ESTRICTAMENTE con un objeto JSON válido con la siguiente estructura:\n"
+        "{\"data\": [{\"tema\": \"Título corto del tema\", \"timestamps\": [\"MM:SS-MM:SS\", \"MM:SS-MM:SS\"]}, ...]}"
+    )
+    
+    prompt = f"Analiza esta transcripción y extrae el índice de temas:\n\n{texto_fuente}"
+    
+    # Llamamos a api_manager forzando Gemini para textos gigantes y evitando el rate limit de Groq
+    res = api_manager.generate_json(
+        prompt=prompt,
+        system_prompt=sys_prompt,
+        temperature=0.2,
+        max_tokens=1000,
+        preferred_provider="gemini"
+    )
+    
+    parsed = res.get("data", {})
+    # Si el LLM devolvió un dict {"data": [...]}, extraemos la lista
+    if isinstance(parsed, dict) and "data" in parsed:
+        return parsed["data"]
+    # Si devolvió directamente la lista [...]
+    elif isinstance(parsed, list):
+        return parsed
+    
+    return []
