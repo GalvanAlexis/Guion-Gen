@@ -188,6 +188,14 @@ def render_tab():
                 if audio_info.get("original_file"):
                     st.session_state["original_media_path"] = audio_info.get("original_file")
 
+            try:
+                progress_box.write("Generando índice de temas...")
+                from src.core.script_generator import generate_topic_index
+                temas = generate_topic_index(md_content)
+                st.session_state["topic_index"] = temas
+            except Exception:
+                pass
+
             _auto_save_state(project_name)
             progress_box.update(label="Transcripción completada", state="complete", expanded=False)
             st.rerun()
@@ -214,27 +222,13 @@ def render_tab():
         st.markdown("<br>", unsafe_allow_html=True)
 
         # Acciones secundarias
-        col_dl, col_idx = st.columns(2)
-        with col_dl:
-            st.download_button(
-                label="Descargar (.md)",
-                data=md_content,
-                file_name=f"transcripcion_{st.session_state.get('project_name', 'proyecto')}.md",
-                mime="text/markdown",
-                use_container_width=True
-            )
-        with col_idx:
-            btn_indice = st.button("Generar índice de temas", use_container_width=True)
-
-        if btn_indice:
-            with st.spinner("Generando índice temático..."):
-                try:
-                    from src.core.script_generator import generate_topic_index
-                    temas = generate_topic_index(st.session_state.get("markdown_content", ""))
-                    st.session_state["topic_index"] = temas
-                    _auto_save_state(st.session_state.get("project_name"))
-                except Exception as e:
-                    st.error(f"Error: {e}")
+        st.download_button(
+            label="Descargar (.md)",
+            data=md_content,
+            file_name=f"transcripcion_{st.session_state.get('project_name', 'proyecto')}.md",
+            mime="text/markdown",
+            use_container_width=True
+        )
 
         # Índice de temas
         topic_index = st.session_state.get("topic_index")
