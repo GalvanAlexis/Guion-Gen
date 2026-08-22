@@ -110,7 +110,7 @@ def render_tab():
                             "timestamps": t.get("timestamps") or [t.get("timestamp", "00:00")] if isinstance(t, dict) else ["00:00"]
                         })
         else:
-            st.info("No hay índice de temas disponible.")
+            st.info("No hay índice de temas. Generalo en la pestaña FUENTE.")
 
         # Fallback manual
         temas_sugeridos = cliente.get("temas_frecuentes", [])

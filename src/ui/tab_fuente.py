@@ -232,6 +232,19 @@ def render_tab():
 
         # Índice de temas
         topic_index = st.session_state.get("topic_index")
+        if not topic_index:
+            st.info("⚠️ El índice de temas no se generó (posible sesión antigua o error de conexión).")
+            if st.button("Generar Índice Temático", use_container_width=True):
+                with st.spinner("Generando índice temático..."):
+                    try:
+                        from src.core.script_generator import generate_topic_index
+                        temas = generate_topic_index(md_content)
+                        st.session_state["topic_index"] = temas
+                        _auto_save_state(st.session_state.get("project_name"))
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
         if topic_index:
             # Compatibilidad con sesión anterior que pudo haber guardado el dict crudo
             if isinstance(topic_index, dict) and "data" in topic_index:
