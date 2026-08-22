@@ -164,11 +164,12 @@ def render_tab():
                     if any(r_start <= s_mid <= r_end for r_start, r_end in valid_ranges):
                         filtered.append(s)
                 
+                preview_segments = filtered
                 if filtered:
-                    texto_a_usar = " ".join([s.get("text", "") for s in filtered]).strip()
+                    from src.core.markdown_builder import format_timestamp
+                    texto_a_usar = "\n".join([f"[{format_timestamp(s.get('start', 0.0))}] {s.get('text', '')}" for s in filtered])
                 else:
                     texto_a_usar = ""
-                preview_segments = filtered
             else:
                 max_time = max((s.get("end", 0.0) for s in segments), default=0.0)
                 if max_time > 5.0:
@@ -188,6 +189,7 @@ def render_tab():
                     preview_segments = segments
         else:
             preview_segments = []
+
 
 
         duracion_val = 60
@@ -229,12 +231,13 @@ def render_tab():
         # Generación
         if btn_generar and texto_a_usar:
             with st.spinner("Generando guion..."):
+                final_text = st.session_state.get("texto_editado", texto_a_usar) if selected_topics_info else texto_a_usar
                 try:
                     if "Video" in formato_general and topic_timestamp:
                         st.session_state["media_start_input"] = first_time
                         
                     res = generate_script(
-                        texto_fuente=texto_a_usar,
+                        texto_fuente=final_text,
                         red=red_code,
                         tema=tema_final,
                         tono=tono_code,
@@ -309,41 +312,47 @@ def render_tab():
                 st.code(guion_actual.get("markdown", ""), language="markdown")
 
         else:
-            if selected_topics_info and preview_segments:
-                st.markdown("""
-                <div class="exec-card" style="padding:1.5rem;">
-                    <p style="font-size:0.85rem; font-weight:600; color:var(--accent); margin-bottom:0.75rem;">
-                        FRAGMENTOS SELECCIONADOS
-                    </p>
-                """, unsafe_allow_html=True)
-                
-                from src.core.markdown_builder import format_timestamp
-                visor = st.container(height=300)
-                with visor:
-                    for s in preview_segments:
-                        start_ts = format_timestamp(s.get("start", 0.0))
-                        st.markdown(
-                            f'<div style="margin-bottom:6px; font-size:0.875rem;">'
-                            f'<span class="timestamp-tag">{start_ts}</span>'
-                            f'<span style="color:var(--text-secondary);">{s.get("text", "")}</span></div>',
-                            unsafe_allow_html=True
-                        )
-                st.markdown("</div>", unsafe_allow_html=True)
+            if selected_topics_info:
+                if preview_segments:
+                    st.markdown("""
+                    <div class="exec-card" style="padding:1.5rem; margin-bottom:1rem;">
+                        <p style="font-size:0.85rem; font-weight:600; color:var(--accent); margin-bottom:0.75rem;">
+                            FRAGMENTOS SELECCIONADOS (EDITABLES)
+                        </p>
+                    """, unsafe_allow_html=True)
+                    
+                    texto_editado = st.text_area(
+                        "Podés editar o refinar la selección antes de generar:",
+                        value=texto_a_usar,
+                        height=250,
+                        label_visibility="collapsed"
+                    )
+                    st.session_state["texto_editado"] = texto_editado
+
+                    st.download_button(
+                        label="Descargar Selección (.md)",
+                        data=texto_editado,
+                        file_name="fragmentos_seleccionados.md",
+                        mime="text/markdown",
+                        use_container_width=True
+                    )
+                    st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    st.warning("Los temas seleccionados no tienen coincidencias exactas en la transcripción.")
             else:
                 st.markdown("""
                 <div class="exec-card" style="text-align:center; padding:2rem; color:#4B5563;">
-                    <p style="font-size:0.9rem;">El guion aparecerá aquí.</p>
+                    <p style="font-size:0.9rem;">Seleccioná temas del índice para ver y editar los fragmentos correspondientes aquí.</p>
                 </div>
                 """, unsafe_allow_html=True)
 
         st.markdown("<hr style='margin:1.5rem 0; border-color:rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
-        col_nav1, col_nav2, col_nav3 = st.columns([1, 1, 1])
+        col_nav1, col_nav2 = st.columns([1, 1])
         with col_nav1:
             render_back_button("← Volver", prev_index=0)
         with col_nav2:
-            render_next_button("Imagen →", next_index=2, disabled=not bool(guion_actual))
-        with col_nav3:
-            render_next_button("Video →", next_index=3, disabled=not bool(guion_actual))
+            next_idx = 3 if "Video" in formato_general else 2
+            render_next_button("Siguiente →", next_index=next_idx, disabled=not bool(guion_actual))
 
 
 def _render_preview(guion: dict):

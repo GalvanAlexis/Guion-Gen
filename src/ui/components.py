@@ -453,28 +453,26 @@ def render_script_tiktok(data: dict):
         voz = s.get("voz", "")
         vis = s.get("visual", "")
         efe = s.get("efecto", "")
-        rows_html.append(f"""
-        <tr>
-            <td><span class="timestamp-tag">{seg}</span></td>
-            <td><strong style="color:#F1F5F9;">{voz}</strong></td>
-            <td><span style="color:#94A3B8;">{vis}</span></td>
-            <td><span style="color:#F59E0B; font-size:0.75rem;">{efe}</span></td>
-        </tr>
-        """)
+        rows_html.append(
+f'''<tr>
+<td><span class="timestamp-tag">{seg}</span></td>
+<td><strong style="color:#F1F5F9;">{voz}</strong></td>
+<td><span style="color:#94A3B8;">{vis}</span></td>
+<td><span style="color:#F59E0B; font-size:0.75rem;">{efe}</span></td>
+</tr>'''
+        )
 
-    table_html = f"""
-    <table class="script-table">
-        <thead>
-            <tr>
-                <th style="width:15%;">Tiempo</th>
-                <th style="width:40%;">Locución</th>
-                <th style="width:30%;">Visual</th>
-                <th style="width:15%;">Efecto</th>
-            </tr>
-        </thead>
-        <tbody>{''.join(rows_html)}</tbody>
-    </table>
-    """
+    table_html = f'''<table class="script-table">
+<thead>
+<tr>
+<th style="width:15%;">Tiempo</th>
+<th style="width:40%;">Locución</th>
+<th style="width:30%;">Visual</th>
+<th style="width:15%;">Efecto</th>
+</tr>
+</thead>
+<tbody>{''.join(rows_html)}</tbody>
+</table>'''
     st.markdown(table_html, unsafe_allow_html=True)
 
     if cta:
