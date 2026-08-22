@@ -93,9 +93,9 @@ class AIRenderer:
             except Exception as e:
                 import traceback
                 print(f"[ERROR Gemini IA] Intento {intento+1} falló: {e}")
-                traceback.print_exc()
-                if "429" in str(e) or "404" in str(e) or intento == 1:
-                    raise RuntimeError(f"Fallo en API de Gemini Imagen: {str(e)}")
+                if "429" in str(e) or "404" in str(e):
+                    print("[Gemini IA] Cuota excedida o modelo no disponible. Abortando generación de imagen y retornando fallback CSS.")
+                    return None
                 time.sleep(1.0)
 
         return None

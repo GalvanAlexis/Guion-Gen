@@ -193,6 +193,8 @@ def render_tab():
                         )
                         if bg_b64:
                             slide_copy["bg_image_b64"] = bg_b64
+                        else:
+                            st.toast(f"⚠️ Slide {idx+1}: Sin acceso a Gemini Imagen (Cuota/404). Usando fondo CSS.", icon="⚠️")
                         processed_slides.append(slide_copy)
                 else:
                     processed_slides = [dict(s) for s in slides_data]
