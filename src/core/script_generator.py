@@ -271,3 +271,82 @@ def generate_topic_index(texto_fuente: str) -> list[dict]:
         return parsed
     
     return []
+
+def update_script_from_markdown(guion_actual: dict, edited_md: str) -> dict:
+    """
+    Intenta extraer las secciones editadas del markdown (para láminas de carrusel y TikTok)
+    y sincronizarlas con el diccionario 'data' para que la vista previa visual se actualice.
+    """
+    import re
+    red = guion_actual.get("red", "tiktok").lower()
+    data = guion_actual.get("data", {})
+    
+    # 1. Actualizar TikTok / Reels
+    if red in ["tiktok", "reels", "shorts"]:
+        slides = []
+        for line in edited_md.split('\n'):
+            line = line.strip()
+            if line.startswith('|') and not line.startswith('|---') and not line.startswith('| Tiempo'):
+                parts = [p.strip() for p in line.split('|')]
+                # parts = ['', 'tiempo', 'voz', 'visual', 'efecto', '']
+                if len(parts) >= 5:
+                    slides.append({
+                        "seg": parts[1].replace('`', '').strip(),
+                        "voz": parts[2],
+                        "visual": parts[3],
+                        "efecto": parts[4]
+                    })
+        if slides:
+            data["slides"] = slides
+            
+    # 2. Actualizar Instagram / Facebook (Carrusel)
+    elif red in ["ig", "instagram", "fb", "facebook"]:
+        slides = []
+        slide_blocks = re.split(r'### Slide \d+', edited_md)[1:]
+        for idx, block in enumerate(slide_blocks, 1):
+            tipo_match = re.search(r'—\s*\[(.*?)\]', block)
+            tipo = tipo_match.group(1).strip() if tipo_match else "slide"
+            
+            tit_match = re.search(r'\*\*Título:\*\*\s*(.+)', block)
+            titulo = tit_match.group(1).strip() if tit_match else ""
+            
+            dato_match = re.search(r'\*\*Dato Destacado:\*\*\s*`?(.*?)`?', block)
+            dato = dato_match.group(1).replace('`', '').strip() if dato_match else ""
+            
+            cuerpo_match = re.search(r'\*\*Texto de apoyo:\*\*\s*(.+)', block)
+            cuerpo = cuerpo_match.group(1).strip() if cuerpo_match else ""
+            
+            slides.append({
+                "slide_num": idx,
+                "tipo": tipo,
+                "titulo": titulo,
+                "dato_destacado": dato,
+                "cuerpo": cuerpo
+            })
+        if slides:
+            data["slides"] = slides
+            
+        copy_match = re.search(r'## ✍️ Copy Caption para la Publicación\s*```text\s*(.*?)\s*```', edited_md, re.DOTALL)
+        if copy_match:
+            data["copy_caption"] = copy_match.group(1).strip()
+
+    # 3. Actualizar Twitter (Hilos)
+    elif red in ["x", "twitter"]:
+        tweets = []
+        tweet_blocks = re.split(r'### Tweet \d+', edited_md)[1:]
+        for idx, block in enumerate(tweet_blocks, 1):
+            text_match = re.search(r'```text\s*(.*?)\s*```', block, re.DOTALL)
+            texto = text_match.group(1).strip() if text_match else ""
+            if texto:
+                tweets.append({
+                    "num": idx,
+                    "texto": texto,
+                    "caracteres": len(texto),
+                    "enfoque": "Editado"
+                })
+        if tweets:
+            data["tweets"] = tweets
+
+    guion_actual["data"] = data
+    guion_actual["markdown"] = edited_md
+    return guion_actual

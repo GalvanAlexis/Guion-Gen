@@ -330,13 +330,22 @@ def render_tab():
             if edited_markdown != guion_actual.get("markdown", ""):
                 guion_actual["markdown"] = edited_markdown
 
-            st.download_button(
-                label="Descargar Guion Final (.md)",
-                data=edited_markdown,
-                file_name=f"{guion_actual.get('red', 'guion')}_{slugify(guion_actual.get('titulo', 'guion'))}_{project_name}.md",
-                mime="text/markdown",
-                use_container_width=True
-            )
+            col_md1, col_md2 = st.columns(2)
+            with col_md1:
+                if st.button("Actualizar láminas 🔄", use_container_width=True, type="secondary"):
+                    from src.core.script_generator import update_script_from_markdown
+                    st.session_state["guion_actual"] = update_script_from_markdown(guion_actual, edited_markdown)
+                    st.session_state["visual_slides_data"] = None
+                    st.rerun()
+                    
+            with col_md2:
+                st.download_button(
+                    label="Descargar Guion Final (.md)",
+                    data=edited_markdown,
+                    file_name=f"{guion_actual.get('red', 'guion')}_{slugify(guion_actual.get('titulo', 'guion'))}_{project_name}.md",
+                    mime="text/markdown",
+                    use_container_width=True
+                )
 
         else:
             if selected_topics_info:
