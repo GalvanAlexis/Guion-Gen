@@ -49,11 +49,18 @@ def render_tab():
     with col_cfg:
         st.markdown('<p class="step-section-title">Configuración</p>', unsafe_allow_html=True)
 
+        def on_format_change():
+            st.session_state.pop("guion_actual", None)
+            st.session_state.pop("guion_variantes", None)
+            st.session_state.pop("texto_editado", None)
+
         formato_general = st.radio(
             "Formato",
             ["Video (Clips)", "Imagen / Texto"],
             horizontal=True,
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            on_change=on_format_change,
+            key="radio_formato_general"
         )
 
         if "Video" in formato_general:
