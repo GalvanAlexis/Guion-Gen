@@ -285,7 +285,7 @@ def render_tab():
             tab_v1, tab_v2, tab_v3 = st.tabs(["Variante 1", "Variante 2", "Variante 3"])
             for idx, (tab_v, v_data) in enumerate(zip([tab_v1, tab_v2, tab_v3], variantes)):
                 with tab_v:
-                    _render_preview(v_data)
+                    _render_preview(v_data, key_suffix=str(idx))
                     if st.button(
                         f"Seleccionar variante {idx+1}",
                         key=f"btn_var_{idx}",
@@ -297,7 +297,7 @@ def render_tab():
                         st.rerun()
 
         elif guion_actual:
-            _render_preview(guion_actual)
+            _render_preview(guion_actual, key_suffix="actual")
             st.markdown("---")
 
             st.download_button(
@@ -355,7 +355,7 @@ def render_tab():
             render_next_button("Siguiente →", next_index=next_idx, disabled=not bool(guion_actual))
 
 
-def _render_preview(guion: dict):
+def _render_preview(guion: dict, key_suffix: str = ""):
     """Enruta al renderizador visual correspondiente."""
     red = guion.get("red", "tiktok").lower()
     data = guion.get("data", {})
@@ -365,4 +365,4 @@ def _render_preview(guion: dict):
     elif red in ["x", "twitter"]:
         render_script_twitter(data)
     else:
-        render_script_social(data, red=red)
+        render_script_social(data, red=red, key_suffix=key_suffix)

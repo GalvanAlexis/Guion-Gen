@@ -529,7 +529,7 @@ def render_script_twitter(data: dict):
         st.markdown(f"**Hashtags:** `{hashtags}`")
 
 
-def render_script_social(data: dict, red: str = "instagram"):
+def render_script_social(data: dict, red: str = "instagram", key_suffix: str = ""):
     """Renderiza un carrusel P.A.S.C. para Instagram o Facebook."""
     titulo = data.get("titulo", "Carrusel PASC")
     slides = data.get("slides", [])
@@ -563,7 +563,7 @@ def render_script_social(data: dict, red: str = "instagram"):
     if copy_caption:
         st.markdown("##### Copy Caption")
         st.text_area("Caption:", value=copy_caption, height=100, disabled=True,
-                     key=f"caption_{titulo[:10]}")
+                     key=f"caption_{titulo[:10]}_{key_suffix}")
     if hashtags:
         st.markdown(f"**Hashtags:** `{hashtags}`")
 
