@@ -99,7 +99,9 @@ def generate_script(
     red: str = "tiktok",
     tema: str = "",
     tono: str = "confrontacional",
+    tono_refuerzo: str = "",
     duracion: int = 60,
+    cantidad_slides: int = 5,
     cliente: dict = None,
     project_name: str = "proyecto_general",
     topic_timestamp: str = None
@@ -109,6 +111,9 @@ def generate_script(
     """
     if cliente is None:
         cliente = load_client_profile("lla_chascomus")
+
+    if tono_refuerzo:
+        tono = f"{tono} - Reforzar con: {tono_refuerzo}"
 
     red_norm = red.lower().strip()
     if red_norm in ["tiktok", "reels", "shorts"]:
@@ -134,6 +139,7 @@ def generate_script(
             red="instagram",
             tono=tono,
             tema=tema,
+            cantidad_slides=cantidad_slides,
             cliente=cliente
         )
         folder_red = "ig"
@@ -143,6 +149,7 @@ def generate_script(
             red="facebook",
             tono=tono,
             tema=tema,
+            cantidad_slides=cantidad_slides,
             cliente=cliente
         )
         folder_red = "fb"

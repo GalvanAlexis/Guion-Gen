@@ -81,6 +81,9 @@ def render_tab():
         tono_label = st.selectbox("Tono", list(tono_opciones.keys()),
                                    label_visibility="collapsed")
         tono_code = tono_opciones[tono_label]
+        
+        st.markdown('<p style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.1rem; margin-top:0.5rem;">Reforzar Tono (Opcional)</p>', unsafe_allow_html=True)
+        tono_refuerzo = st.text_input("Reforzar", placeholder="Ej: Usar humor, ser irónico...", label_visibility="collapsed")
 
         topic_index = st.session_state.get("topic_index", [])
         if isinstance(topic_index, dict) and "data" in topic_index:
@@ -193,11 +196,18 @@ def render_tab():
 
 
         duracion_val = 60
+        cantidad_slides = 5
         if red_code == "tiktok":
             duracion_val = st.select_slider(
                 "Duración (segundos)",
                 options=[30, 45, 60, 90, 180],
                 value=60
+            )
+        else:
+            cantidad_slides = st.slider(
+                "Cantidad de láminas",
+                min_value=1, max_value=10,
+                value=5
             )
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -241,7 +251,9 @@ def render_tab():
                         red=red_code,
                         tema=tema_final,
                         tono=tono_code,
+                        tono_refuerzo=tono_refuerzo,
                         duracion=duracion_val,
+                        cantidad_slides=cantidad_slides,
                         cliente=cliente,
                         project_name=project_name,
                         topic_timestamp=topic_timestamp
@@ -300,16 +312,24 @@ def render_tab():
             _render_preview(guion_actual, key_suffix="actual")
             st.markdown("---")
 
+            st.markdown("##### Editor de Guion (Markdown)")
+            edited_markdown = st.text_area(
+                "Guion generado (Editable)",
+                value=guion_actual.get("markdown", ""),
+                height=400,
+                label_visibility="collapsed"
+            )
+            
+            if edited_markdown != guion_actual.get("markdown", ""):
+                guion_actual["markdown"] = edited_markdown
+
             st.download_button(
-                label="Descargar (.md)",
-                data=guion_actual.get("markdown", ""),
+                label="Descargar Guion Final (.md)",
+                data=edited_markdown,
                 file_name=f"{guion_actual.get('red', 'guion')}_{slugify(guion_actual.get('titulo', 'guion'))}_{project_name}.md",
                 mime="text/markdown",
                 use_container_width=True
             )
-
-            with st.expander("Ver Markdown"):
-                st.code(guion_actual.get("markdown", ""), language="markdown")
 
         else:
             if selected_topics_info:
