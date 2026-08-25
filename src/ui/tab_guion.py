@@ -388,7 +388,7 @@ def render_tab():
             render_back_button("← Volver", prev_index=0)
         with col_nav2:
             next_idx = 3 if "Video" in formato_general else 2
-            render_next_button("Siguiente →", next_index=next_idx, disabled=not bool(guion_actual))
+            render_next_button("Siguiente →", next_index=next_idx)
 
 
 def _render_preview(guion: dict, key_suffix: str = ""):

@@ -277,5 +277,4 @@ def render_tab():
         with col_nav1:
             render_back_button("← Volver", prev_index=1)
         with col_nav2:
-            tiene_carrusel = bool(carrusel_actual and "slides" in carrusel_actual and carrusel_actual["slides"])
-            render_next_button("Siguiente →", next_index=3, disabled=not tiene_carrusel)
+            render_next_button("Siguiente →", next_index=3)

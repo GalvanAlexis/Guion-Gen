@@ -381,14 +381,14 @@ def render_stepper(current_step: int, completed_steps: list):
             connector = f'<div style="flex:1; height:1px; background:{conn_color}; margin:0 6px; margin-top:-16px; align-self:flex-start; margin-top:16px;"></div>'
 
         steps_html += (
-            f'<div style="display:flex; flex-direction:column; align-items:center; flex:1;">'
+            f'<a href="?tab={i}" target="_self" style="display:flex; flex-direction:column; align-items:center; flex:1; text-decoration:none; cursor:pointer;">'
             f'<div style="{circle_style} width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:\'Outfit\',sans-serif; font-weight:700; font-size:0.8rem; flex-shrink:0;">'
             f'{icon}'
             f'</div>'
             f'<span style="margin-top:5px; font-size:{label_size}; font-weight:{label_weight}; letter-spacing:0.08em; text-transform:uppercase; color:{label_color}; font-family:\'Inter\',sans-serif; text-align:center;">'
             f'{label}'
             f'</span>'
-            f'</div>'
+            f'</a>'
             f'{connector}'
         )
 
