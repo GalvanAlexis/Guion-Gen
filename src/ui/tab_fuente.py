@@ -273,34 +273,22 @@ def render_tab():
         st.markdown("<br>", unsafe_allow_html=True)
 
         # Visor de transcripción
-        st.markdown('<p class="step-section-title">Vista previa</p>', unsafe_allow_html=True)
-        max_time = max((s.get("end", 0.0) for s in segments), default=0.0)
-        if max_time > 10.0:
-            max_min = max_time / 60.0
-            rango_min = st.slider(
-                "Rango (minutos)",
-                min_value=0.0, max_value=max_min,
-                value=(0.0, max_min), step=0.1
-            )
-            rango = (rango_min[0] * 60.0, rango_min[1] * 60.0)
-            filtered_segments = [
-                s for s in segments
-                if s.get("end", 0.0) >= rango[0] and s.get("start", 0.0) <= rango[1]
-            ]
-        else:
-            filtered_segments = segments
-
-        visor = st.container(height=300)
-        with visor:
-            for s in filtered_segments:
-                start_ts = format_timestamp(s.get("start", 0.0))
-                st.markdown(
-                    f'<div style="margin-bottom:6px; font-size:0.875rem;">'
-                    f'<span class="timestamp-tag">{start_ts}</span>'
-                    f'{s.get("text", "")}</div>',
-                    unsafe_allow_html=True
-                )
-
+        st.markdown('<p class="step-section-title">Vista previa (Editor Markdown)</p>', unsafe_allow_html=True)
+        
+        # Hacemos que la transcripción sea editable y guardamos el cambio
+        transcripcion_editable = st.text_area(
+            "Editor Markdown",
+            value=st.session_state.get("markdown_content", ""),
+            height=300,
+            label_visibility="collapsed",
+            key="fuente_markdown_editor"
+        )
+        
+        if transcripcion_editable != st.session_state.get("markdown_content", ""):
+            st.session_state["markdown_content"] = transcripcion_editable
+            # Actualizamos también transcription_text para mantener sincronía básica
+            st.session_state["transcription_text"] = transcripcion_editable
+            
         st.markdown("<br>", unsafe_allow_html=True)
 
         # Botón de avance
