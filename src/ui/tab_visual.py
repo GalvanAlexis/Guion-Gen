@@ -1,280 +1,180 @@
-"""Pestaña 3: VISUAL — Generador de Carruseles e Imágenes."""
+"""Pestaña 3: VISUAL — Director Creativo y Ensamblador de Brief Visual."""
 import streamlit as st
-from pathlib import Path
+import pandas as pd
+from src.ui.components import render_step_header, render_next_button, render_back_button
+from src.config.settings import load_client_profile
+from src.core.visual_brief import build_visual_brief
+from src.core.visual_enhancer import generate_table_items, enhance_visual_prompt, COLS_IMAGEN, COLS_VIDEO
 
-from src.visual.css_renderer import render_carousel, render_slide, FORMATS
-from src.visual.ai_renderer import ai_renderer
-from src.config.settings import load_client_profile, OUTPUT_DIR
-from src.core.script_generator import slugify
-from src.ui.components import (
-    render_step_header, render_next_button, render_back_button,
-    render_slide_card_preview
-)
-
-TEMPLATE_OPTIONS = {
-    "LLA Dark (Violeta + Oro)": "lla_dark",
-    "Alerta Roja (Urgente)": "alerta_roja",
-    "Estadística (Datos)": "estadistica"
-}
-
-FORMAT_OPTIONS = {
-    "Carrusel 4:5 — 1080×1350 (Instagram)": "4:5",
-    "Story / Reel 9:16 — 1080×1920": "9:16",
-    "Cuadrado 1:1 — 1080×1080": "1:1"
-}
-
-
-def extract_slides_from_guion(guion: dict | None) -> list[dict]:
-    """Extrae y normaliza los datos de slides a partir del guion generado."""
-    if not guion or not isinstance(guion, dict):
-        return _get_default_slides()
-
-    data = guion.get("data", {})
-
-    if "slides" in data and isinstance(data["slides"], list) and data["slides"]:
-        first_slide = data["slides"][0]
-        if "cuerpo" in first_slide or "titulo" in first_slide:
-            return [{
-                "titulo": s.get("titulo", ""),
-                "cuerpo": s.get("cuerpo", ""),
-                "subtitulo": s.get("subtitulo", s.get("tipo", "").upper()),
-                "dato_destacado": s.get("dato_destacado", ""),
-                "cta_texto": s.get("cta_texto", "")
-            } for s in data["slides"]][:10]
-
-        elif "voz" in first_slide or "visual" in first_slide:
-            return [{
-                "titulo": s.get("visual", "Toma Visual"),
-                "cuerpo": s.get("voz", ""),
-                "subtitulo": s.get("seg", ""),
-                "dato_destacado": s.get("efecto", ""),
-                "cta_texto": data.get("cta", "") if s == data["slides"][-1] else ""
-            } for s in data["slides"]][:10]
-
-    if "tweets" in data and isinstance(data["tweets"], list) and data["tweets"]:
-        return [{
-            "titulo": f"Tweet #{tw.get('num', 1)}",
-            "cuerpo": tw.get("texto", ""),
-            "subtitulo": tw.get("enfoque", ""),
-            "dato_destacado": "",
-            "cta_texto": data.get("cta", "") if tw == data["tweets"][-1] else ""
-        } for tw in data["tweets"]][:10]
-
-    return _get_default_slides()
-
-
-def _get_default_slides() -> list[dict]:
-    return [
-        {
-            "titulo": "¿Sabías esto sobre el déficit fiscal?",
-            "subtitulo": "EL PROBLEMA",
-            "cuerpo": "Durante décadas se financió el gasto público con emisión monetaria descontrolada.",
-            "dato_destacado": "5% PBI",
-            "cta_texto": ""
-        },
-        {
-            "titulo": "La herencia recibida en números",
-            "subtitulo": "LA AGITACIÓN",
-            "cuerpo": "Una inflación reprimida que amenazaba con derivar en hiperinflación histórica.",
-            "dato_destacado": "15.000% anual",
-            "cta_texto": ""
-        },
-        {
-            "titulo": "El camino hacia el superávit",
-            "subtitulo": "LA SOLUCIÓN",
-            "cuerpo": "Por primera vez en 16 años, alcanzamos superávit fiscal y financiero continuo.",
-            "dato_destacado": "Déficit Cero",
-            "cta_texto": ""
-        },
-        {
-            "titulo": "La libertad no se negocia",
-            "subtitulo": "CONCLUSIÓN",
-            "cuerpo": "Sumate a la transformación de Chascomús y la provincia de Buenos Aires.",
-            "dato_destacado": "LLA Chascomús",
-            "cta_texto": "¡Seguinos!"
-        }
-    ]
-
+ESTILOS_VISUALES = [
+    {"id": "campaign_premium", "nombre": "Campaign Premium + Editorial News", "uso": "Noticias y posicionamiento", "emoji": "📰"},
+    {"id": "data_infografia", "nombre": "Data / Infografía", "uso": "Economía y estadísticas", "emoji": "📊"},
+    {"id": "academico_evidence", "nombre": "Académico / Evidence", "uso": "Propuestas y políticas públicas", "emoji": "🎓"},
+    {"id": "impact_breaking", "nombre": "Impact / Breaking News", "uso": "Respuesta a noticias", "emoji": "🔥"},
+    {"id": "cinematografico", "nombre": "Cinematográfico", "uso": "Emoción, identidad y storytelling", "emoji": "🎬"}
+]
 
 def render_tab():
-    """Renderiza el paso 3 del wizard: generación de carruseles."""
+    """Renderiza el paso 3 del wizard: Director Creativo."""
     render_step_header(
-        "Compilá el carrusel",
-        "Ajustá el diseño, editá el texto de cada slide y compilá las imágenes."
+        "Director Creativo",
+        "Definí el estilo, formato y estructura visual para enriquecer el guion narrativo."
     )
 
-    guion_actual = st.session_state.get("guion_actual")
-    project_name = st.session_state.get("project_name", "proyecto_lla_01")
+    narrative_prompt = st.session_state.get("narrative_prompt", "")
+    project_name = st.session_state.get("project_name", "proyecto_generico")
     cliente = st.session_state.get("client", load_client_profile("lla_chascomus"))
+    
+    if not narrative_prompt:
+        st.warning("No hay un guion narrativo previo cargado. Podés continuar definiendo la estructura visual de forma independiente.")
 
-    if "visual_slides_data" not in st.session_state or st.session_state["visual_slides_data"] is None:
-        st.session_state["visual_slides_data"] = extract_slides_from_guion(guion_actual)
+    col_izq, col_der = st.columns([1, 1], gap="large")
 
-    slides_data = st.session_state["visual_slides_data"]
-
-    if guion_actual:
-        tit_guion = guion_actual.get("data", {}).get("titulo") or "Guión activo"
-        st.info(f"Sincronizado con: **{tit_guion}** — {len(slides_data)} slides")
-
-    col_config, col_preview = st.columns([1, 1], gap="large")
-
-    # ── Configuración ─────────────────────────────────────────────────────────
-    with col_config:
-        st.markdown('<p class="step-section-title">Modo de generación</p>', unsafe_allow_html=True)
-        modo_visual = st.radio(
-            "modo",
-            ["CSS Rápido (Plantillas LLA)", "IA Creativa (Gemini Imagen 3)"],
-            horizontal=True,
+    with col_izq:
+        st.markdown('<p class="step-section-title">Parámetros Creativos</p>', unsafe_allow_html=True)
+        
+        # 1. Tipo y Red Social
+        c1, c2 = st.columns(2)
+        tipo_contenido = c1.selectbox("Tipo de Contenido", ["Imagen", "Video"])
+        
+        redes = ["Instagram", "TikTok", "X / Twitter", "Facebook", "YouTube Shorts"]
+        if tipo_contenido == "Imagen":
+            redes = ["Instagram", "X / Twitter", "Facebook"]
+        red_social = c2.selectbox("Red Social", redes)
+        
+        # 2. Dimensiones
+        dimensiones_opts = ["4:5 (1080x1350)", "9:16 (1080x1920)", "1:1 (1080x1080)", "16:9 (1920x1080)"]
+        default_dim = 0
+        if red_social in ["TikTok", "YouTube Shorts"]:
+            default_dim = 1
+            
+        dimensiones = st.selectbox("Dimensiones", dimensiones_opts, index=default_dim)
+        
+        # 3. Estilo Visual
+        st.markdown('<p class="step-section-title" style="margin-top:1rem;">Línea Visual</p>', unsafe_allow_html=True)
+        
+        estilo_opts = list(ESTILOS_VISUALES)
+        estilo_opts.append({"id": "libre", "nombre": "Escribir estilo libre...", "uso": "Personalizado", "emoji": "📝"})
+        
+        estilo_seleccionado = st.radio(
+            "Línea Visual",
+            estilo_opts,
+            format_func=lambda e: f"{e['emoji']} {e['nombre']} — {e['uso']}",
             label_visibility="collapsed"
         )
-        is_ai_mode = "IA" in modo_visual
-
-        if is_ai_mode:
-            st.caption("Fondos generados por IA. Aprox. 20s por slide.")
+        
+        if estilo_seleccionado["id"] == "libre":
+            estilo_libre_txt = st.text_input("Ingresá tu estilo visual", placeholder="Ej: Estilo retro, paleta neón...")
+            estilo_seleccionado = {"id": "libre", "nombre": estilo_libre_txt if estilo_libre_txt else "Estilo Libre", "uso": "Personalizado", "emoji": "📝"}
+        
+        # 4. Estructura (Data Editor)
+        st.markdown('<p class="step-section-title" style="margin-top:1rem;">Estructura de Contenido</p>', unsafe_allow_html=True)
+        
+        df_editado = pd.DataFrame()
+        
+        if tipo_contenido == "Imagen":
+            cant_items = st.number_input("Cantidad de láminas", min_value=1, max_value=10, value=4)
+            cant_key = "cant_laminas"
+            df_key = "visual_df_imagen"
+            cols = COLS_IMAGEN
+            empty_row = lambda i: {c: (i if c == "Nro" else f"Lámina {i}" if c == "Título" else "") for c in cols}
         else:
-            st.caption("Renderizado instantáneo con fondos OLED oscuros. Aprox. 3s por slide.")
+            cant_items = st.number_input("Cantidad de escenas", min_value=1, max_value=20, value=4)
+            cant_key = "cant_escenas"
+            df_key = "visual_df_video"
+            cols = COLS_VIDEO
+            empty_row = lambda i: {c: (i if c == "Nro" else f"Escena {i}" if c == "Descripción Visual" else 3 if c == "Duración (s)" else "") for c in cols}
 
-        c1, c2 = st.columns(2)
-        with c1:
-            plantilla_label = st.selectbox("Plantilla", list(TEMPLATE_OPTIONS.keys()),
-                                            label_visibility="collapsed")
-            plantilla_code = TEMPLATE_OPTIONS[plantilla_label]
-        with c2:
-            formato_label = st.selectbox("Formato", list(FORMAT_OPTIONS.keys()),
-                                          label_visibility="collapsed")
-            formato_code = FORMAT_OPTIONS[formato_label]
+        # Re-inicializar tabla si cambia cant o tipo
+        if (df_key not in st.session_state or 
+            len(st.session_state[df_key]) != cant_items or
+            list(st.session_state[df_key].columns) != cols):
+            st.session_state[df_key] = pd.DataFrame([empty_row(i) for i in range(1, cant_items + 1)])
 
-        st.markdown("---")
-        st.markdown('<p class="step-section-title">Contenido de slides</p>', unsafe_allow_html=True)
-
-        if len(slides_data) > 10:
-            st.warning("Máximo 10 slides. Se ajustará automáticamente.")
-            slides_data = slides_data[:10]
-            st.session_state["visual_slides_data"] = slides_data
-
-        for i, s in enumerate(slides_data):
-            with st.expander(f"Slide {i+1} — {s.get('titulo', '')[:35]}", expanded=(i == 0)):
-                s["titulo"] = st.text_input(f"Título", value=s.get("titulo", ""),
-                                             key=f"v_tit_{i}")
-                s["subtitulo"] = st.text_input(f"Sección", value=s.get("subtitulo", ""),
-                                                key=f"v_sub_{i}")
-                s["cuerpo"] = st.text_area(f"Cuerpo", value=s.get("cuerpo", ""),
-                                            height=70, key=f"v_body_{i}")
-                ec1, ec2 = st.columns(2)
-                with ec1:
-                    s["dato_destacado"] = st.text_input("Dato / Métrica",
-                                                         value=s.get("dato_destacado", ""),
-                                                         key=f"v_stat_{i}")
-                with ec2:
-                    s["cta_texto"] = st.text_input("CTA",
-                                                    value=s.get("cta_texto", ""),
-                                                    key=f"v_cta_{i}")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        btn_render = st.button("Compilar carrusel", use_container_width=True, type="primary")
-
-        if btn_render:
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            try:
-                processed_slides = []
-                total_slides = len(slides_data)
-
-                if is_ai_mode:
-                    for idx, slide_item in enumerate(slides_data):
-                        status_text.text(f"Generando arte para slide {idx+1}/{total_slides}...")
-                        progress_bar.progress((idx + 1) / (total_slides * 2))
-                        slide_copy = dict(slide_item)
-                        bg_b64 = ai_renderer.get_background_b64(
-                            tema=slide_item.get("titulo", "Libertad y Economía"),
-                            tono="confrontacional",
-                            project_name=project_name,
-                            formato=formato_code
-                        )
-                        if bg_b64:
-                            slide_copy["bg_image_b64"] = bg_b64
-                        else:
-                            st.toast(f"⚠️ Slide {idx+1}: Sin acceso a Gemini Imagen (Cuota/404). Usando fondo CSS.", icon="⚠️")
-                        processed_slides.append(slide_copy)
+        # Botón IA para auto-completar tabla
+        if st.button("✨ Auto-completar tabla con IA", use_container_width=True, disabled=not bool(narrative_prompt)):
+            with st.spinner("Generando estructura con IA..."):
+                items_generados = generate_table_items(
+                    narrative_prompt, tipo_contenido, cant_items, estilo_seleccionado, cliente
+                )
+                if items_generados:
+                    # Rellenar el df con los resultados, respetando las columnas esperadas
+                    rows = []
+                    for i, item in enumerate(items_generados):
+                        row = {c: item.get(c, empty_row(i+1).get(c, "")) for c in cols}
+                        row["Nro"] = i + 1
+                        rows.append(row)
+                    st.session_state[df_key] = pd.DataFrame(rows)
+                    st.rerun()
                 else:
-                    processed_slides = [dict(s) for s in slides_data]
+                    st.error("La IA no devolvió resultados. Revisá la conexión o completá la tabla manualmente.")
+        
+        df_editado = st.data_editor(st.session_state[df_key], use_container_width=True, hide_index=True)
+        st.session_state[df_key] = df_editado
+            
+        # Tiempo total (solo video)
+        if tipo_contenido == "Video":
+            try:
+                total_seg = df_editado["Duración (s)"].sum()
+                st.info(f"⏱️ **Tiempo Total Estimado:** {total_seg} segundos")
+            except Exception:
+                pass
 
-                status_text.text("Capturando imágenes con Playwright...")
-                progress_bar.progress(0.7)
+    with col_der:
+        st.markdown('<p class="step-section-title">Brief Visual Final (.md)</p>', unsafe_allow_html=True)
+        
+        # Brief auto-generado desde parámetros
+        brief_generado = build_visual_brief(
+            narrative_prompt, tipo_contenido, red_social, dimensiones,
+            estilo_seleccionado, df_editado, project_name, cliente
+        )
+        
+        editor_key = f"visual_brief_editor_{st.session_state.get('brief_version', 0)}"
+        brief_editable = st.text_area(
+            "Editor Markdown",
+            value=st.session_state.get("visual_brief_prompt", brief_generado),
+            height=520,
+            label_visibility="collapsed",
+            key=editor_key
+        )
+        
+        # Guardar edición manual
+        if brief_editable != st.session_state.get("visual_brief_prompt"):
+            st.session_state["visual_brief_prompt"] = brief_editable
 
-                res_carousel = render_carousel(
-                    template=plantilla_code,
-                    slides_data=processed_slides,
-                    proyecto=project_name,
-                    formato=formato_code,
-                    client=cliente
-                )
-
-                progress_bar.progress(1.0)
-                status_text.empty()
-                st.session_state["carrusel_actual"] = res_carousel
+        # Botones de acción
+        b1, b2 = st.columns(2)
+        
+        with b1:
+            if st.button("🔄 Actualizar desde izquierda", use_container_width=True):
+                st.session_state["visual_brief_prompt"] = brief_generado
+                st.session_state["brief_version"] = st.session_state.get("brief_version", 0) + 1
                 st.rerun()
-
-            except Exception as err:
-                status_text.empty()
-                st.error(f"Error: {str(err)}")
-
-    # ── Preview ───────────────────────────────────────────────────────────────
-    with col_preview:
-        st.markdown('<p class="step-section-title">Resultado</p>', unsafe_allow_html=True)
-        carrusel_actual = st.session_state.get("carrusel_actual")
-
-        if carrusel_actual and "slides" in carrusel_actual and carrusel_actual["slides"]:
-            slides_paths = carrusel_actual["slides"]
-            zip_path = carrusel_actual.get("zip")
-            total_time = carrusel_actual.get("total_elapsed_sec", 0)
-
-            st.caption(f"`{carrusel_actual.get('formato', '4:5')}` · {total_time:.1f}s · {len(slides_paths)} slides")
-
-            if zip_path and Path(zip_path).exists():
-                with open(zip_path, "rb") as f_zip:
-                    st.download_button(
-                        label="Descargar carrusel (.ZIP)",
-                        data=f_zip.read(),
-                        file_name=Path(zip_path).name,
-                        mime="application/zip",
-                        type="primary",
-                        use_container_width=True
+        
+        with b2:
+            # Filtro IA: mejora el prompt con lenguaje natural + detalles técnicos
+            if st.button("🎨 Mejorar Brief con IA", use_container_width=True, type="primary"):
+                with st.spinner("Aplicando filtro creativo IA..."):
+                    prompt_actual = st.session_state.get("visual_brief_prompt", brief_generado)
+                    prompt_mejorado = enhance_visual_prompt(
+                        prompt_actual, tipo_contenido, estilo_seleccionado,
+                        red_social, dimensiones, cliente
                     )
+                    st.session_state["visual_brief_prompt"] = prompt_mejorado
+                    st.session_state["brief_version"] = st.session_state.get("brief_version", 0) + 1
+                    st.rerun()
 
-            st.markdown("---")
+        st.download_button(
+            "Descargar Brief Visual (.md)",
+            data=st.session_state.get("visual_brief_prompt", brief_generado),
+            file_name=f"brief_visual_{project_name}.md",
+            mime="text/markdown",
+            use_container_width=True
+        )
 
-            for idx, slide_p in enumerate(slides_paths):
-                p_obj = Path(slide_p)
-                if p_obj.exists():
-                    st.caption(f"Slide {idx+1}")
-                    st.image(str(p_obj), use_container_width=True)
-                    with open(p_obj, "rb") as f_img:
-                        st.download_button(
-                            label=f"Descargar slide {idx+1}",
-                            data=f_img.read(),
-                            file_name=p_obj.name,
-                            mime="image/png",
-                            key=f"dl_slide_{idx}",
-                            use_container_width=True
-                        )
-                    st.markdown("<br>", unsafe_allow_html=True)
-
-        else:
-            st.markdown('<p style="color:#4B5563; font-size:0.875rem;">Compilá el carrusel para ver las imágenes aquí.</p>', unsafe_allow_html=True)
-            st.markdown('<p class="step-section-title" style="margin-top:1rem;">Estructura actual</p>', unsafe_allow_html=True)
-            for idx, s in enumerate(slides_data):
-                render_slide_card_preview(
-                    slide_num=idx + 1,
-                    title=s.get("titulo", ""),
-                    body=s.get("cuerpo", ""),
-                    stat=s.get("dato_destacado", ""),
-                    subtitle=s.get("subtitulo", "")
-                )
-
-        st.markdown("<hr style='margin:1.5rem 0; border-color:rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
-        col_nav1, col_nav2 = st.columns([1, 1])
-        with col_nav1:
-            render_back_button("← Volver", prev_index=1)
-        with col_nav2:
-            render_next_button("Siguiente →", next_index=3)
+    st.markdown("<hr style='margin:1.5rem 0; border-color:rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
+    col_nav1, col_nav2 = st.columns([1, 1])
+    with col_nav1:
+        render_back_button("← Volver a Guion", prev_index=1)
+    with col_nav2:
+        render_next_button("Siguiente →", next_index=3)

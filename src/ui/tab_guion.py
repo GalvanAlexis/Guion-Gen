@@ -134,9 +134,26 @@ def render_tab():
         
         # Ensamblar prompt
         prompt_ensamblado = assemble_prompt(st.session_state["narrative_selections"], project_name, cliente)
-        st.session_state["narrative_prompt"] = prompt_ensamblado
         
-        st.markdown(f'<div class="prompt-preview">{prompt_ensamblado}</div>', unsafe_allow_html=True)
+        # Usamos st.text_area para que sea editable
+        editor_key = f"narrative_prompt_editor_{st.session_state.get('prompt_version', 0)}"
+        prompt_editable = st.text_area(
+            "Editor Markdown",
+            value=st.session_state.get("narrative_prompt", prompt_ensamblado) if st.session_state.get("narrative_prompt") else prompt_ensamblado,
+            height=600,
+            label_visibility="collapsed",
+            key=editor_key
+        )
+        
+        # Botón para regenerar y pisar las ediciones manuales si el usuario lo desea
+        if st.button("🔄 Actualizar Prompt con cambios de la izquierda", use_container_width=True):
+            st.session_state["narrative_prompt"] = prompt_ensamblado
+            st.session_state["prompt_version"] = st.session_state.get("prompt_version", 0) + 1
+            st.rerun()
+            
+        # Guardar en session state lo que el usuario editó
+        if prompt_editable != st.session_state.get("narrative_prompt"):
+            st.session_state["narrative_prompt"] = prompt_editable
         
         st.markdown("<br>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
