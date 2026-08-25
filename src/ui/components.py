@@ -338,6 +338,46 @@ def inject_custom_css():
         border-radius: var(--radius-sm) !important;
         border-color: var(--card-border) !important;
     }
+    /* ── Bloques Narrativos (Pestaña 2) ─────────────────────────────────────── */
+    .narrative-block {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    .narrative-block-complete {
+        border-left: 3px solid var(--success);
+    }
+    .narrative-block-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+    .block-badge {
+        background: rgba(255,255,255,0.1);
+        color: var(--text-secondary);
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        font-family: 'JetBrains Mono', monospace;
+    }
+    .prompt-preview {
+        background: #000;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-sm);
+        padding: 1.25rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        color: #A7F3D0;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
     </style>
     """, unsafe_allow_html=True)
 
