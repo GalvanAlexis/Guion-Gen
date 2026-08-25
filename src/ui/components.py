@@ -381,14 +381,14 @@ def render_stepper(current_step: int, completed_steps: list):
             connector = f'<div style="flex:1; height:1px; background:{conn_color}; margin:0 6px; margin-top:-16px; align-self:flex-start; margin-top:16px;"></div>'
 
         steps_html += (
-            f'<div style="display:flex; flex-direction:column; align-items:center; flex:1;">'
+            f'<a href="?tab={i}" target="_self" style="display:flex; flex-direction:column; align-items:center; flex:1; text-decoration:none; cursor:pointer;">'
             f'<div style="{circle_style} width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:\'Outfit\',sans-serif; font-weight:700; font-size:0.8rem; flex-shrink:0;">'
             f'{icon}'
             f'</div>'
             f'<span style="margin-top:5px; font-size:{label_size}; font-weight:{label_weight}; letter-spacing:0.08em; text-transform:uppercase; color:{label_color}; font-family:\'Inter\',sans-serif; text-align:center;">'
             f'{label}'
             f'</span>'
-            f'</div>'
+            f'</a>'
             f'{connector}'
         )
 
@@ -453,28 +453,26 @@ def render_script_tiktok(data: dict):
         voz = s.get("voz", "")
         vis = s.get("visual", "")
         efe = s.get("efecto", "")
-        rows_html.append(f"""
-        <tr>
-            <td><span class="timestamp-tag">{seg}</span></td>
-            <td><strong style="color:#F1F5F9;">{voz}</strong></td>
-            <td><span style="color:#94A3B8;">{vis}</span></td>
-            <td><span style="color:#F59E0B; font-size:0.75rem;">{efe}</span></td>
-        </tr>
-        """)
+        rows_html.append(
+f'''<tr>
+<td><span class="timestamp-tag">{seg}</span></td>
+<td><strong style="color:#F1F5F9;">{voz}</strong></td>
+<td><span style="color:#94A3B8;">{vis}</span></td>
+<td><span style="color:#F59E0B; font-size:0.75rem;">{efe}</span></td>
+</tr>'''
+        )
 
-    table_html = f"""
-    <table class="script-table">
-        <thead>
-            <tr>
-                <th style="width:15%;">Tiempo</th>
-                <th style="width:40%;">Locución</th>
-                <th style="width:30%;">Visual</th>
-                <th style="width:15%;">Efecto</th>
-            </tr>
-        </thead>
-        <tbody>{''.join(rows_html)}</tbody>
-    </table>
-    """
+    table_html = f'''<table class="script-table">
+<thead>
+<tr>
+<th style="width:15%;">Tiempo</th>
+<th style="width:40%;">Locución</th>
+<th style="width:30%;">Visual</th>
+<th style="width:15%;">Efecto</th>
+</tr>
+</thead>
+<tbody>{''.join(rows_html)}</tbody>
+</table>'''
     st.markdown(table_html, unsafe_allow_html=True)
 
     if cta:
@@ -531,7 +529,7 @@ def render_script_twitter(data: dict):
         st.markdown(f"**Hashtags:** `{hashtags}`")
 
 
-def render_script_social(data: dict, red: str = "instagram"):
+def render_script_social(data: dict, red: str = "instagram", key_suffix: str = ""):
     """Renderiza un carrusel P.A.S.C. para Instagram o Facebook."""
     titulo = data.get("titulo", "Carrusel PASC")
     slides = data.get("slides", [])
@@ -565,7 +563,7 @@ def render_script_social(data: dict, red: str = "instagram"):
     if copy_caption:
         st.markdown("##### Copy Caption")
         st.text_area("Caption:", value=copy_caption, height=100, disabled=True,
-                     key=f"caption_{titulo[:10]}")
+                     key=f"caption_{titulo[:10]}_{key_suffix}")
     if hashtags:
         st.markdown(f"**Hashtags:** `{hashtags}`")
 

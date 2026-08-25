@@ -193,6 +193,8 @@ def render_tab():
                         )
                         if bg_b64:
                             slide_copy["bg_image_b64"] = bg_b64
+                        else:
+                            st.toast(f"⚠️ Slide {idx+1}: Sin acceso a Gemini Imagen (Cuota/404). Usando fondo CSS.", icon="⚠️")
                         processed_slides.append(slide_copy)
                 else:
                     processed_slides = [dict(s) for s in slides_data]
@@ -275,5 +277,4 @@ def render_tab():
         with col_nav1:
             render_back_button("← Volver", prev_index=1)
         with col_nav2:
-            tiene_carrusel = bool(carrusel_actual and "slides" in carrusel_actual and carrusel_actual["slides"])
-            render_next_button("Siguiente →", next_index=3, disabled=not tiene_carrusel)
+            render_next_button("Siguiente →", next_index=3)

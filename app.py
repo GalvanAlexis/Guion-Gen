@@ -59,9 +59,22 @@ def get_completed_steps() -> list:
     return completed
 
 # ── Stepper superior ──────────────────────────────────────────────────────────
+if "tab" in st.query_params:
+    try:
+        qp_tab = int(st.query_params["tab"])
+        if st.session_state.get("last_qp_tab") != qp_tab and 0 <= qp_tab < len(STEP_LABELS):
+            st.session_state["active_tab_index"] = qp_tab
+            st.session_state["last_qp_tab"] = qp_tab
+    except ValueError:
+        pass
+
 current_index = st.session_state.get("active_tab_index", 0)
 if current_index >= len(STEP_LABELS):
     current_index = 0
+
+if st.session_state.get("last_qp_tab") != current_index:
+    st.query_params["tab"] = str(current_index)
+    st.session_state["last_qp_tab"] = current_index
 
 completed_steps = get_completed_steps()
 render_stepper(current_index, completed_steps)

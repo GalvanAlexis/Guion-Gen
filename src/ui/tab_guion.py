@@ -49,11 +49,18 @@ def render_tab():
     with col_cfg:
         st.markdown('<p class="step-section-title">Configuración</p>', unsafe_allow_html=True)
 
+        def on_format_change():
+            st.session_state.pop("guion_actual", None)
+            st.session_state.pop("guion_variantes", None)
+            st.session_state.pop("texto_editado", None)
+
         formato_general = st.radio(
             "Formato",
             ["Video (Clips)", "Imagen / Texto"],
             horizontal=True,
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            on_change=on_format_change,
+            key="radio_formato_general"
         )
 
         if "Video" in formato_general:
@@ -81,68 +88,133 @@ def render_tab():
         tono_label = st.selectbox("Tono", list(tono_opciones.keys()),
                                    label_visibility="collapsed")
         tono_code = tono_opciones[tono_label]
+        
+        st.markdown('<p style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.1rem; margin-top:0.5rem;">Reforzar Tono (Opcional)</p>', unsafe_allow_html=True)
+        tono_refuerzo = st.text_input("Reforzar", placeholder="Ej: Usar humor, ser irónico...", label_visibility="collapsed")
 
         topic_index = st.session_state.get("topic_index", [])
         if isinstance(topic_index, dict) and "data" in topic_index:
             topic_index = topic_index["data"]
         if not isinstance(topic_index, list):
             topic_index = []
-            
-        opciones_temas = ["[Libre]"]
-        for t in topic_index:
-            if isinstance(t, dict):
-                ts_list = t.get("timestamps") or [t.get("timestamp", "00:00")]
-                if isinstance(ts_list, list):
-                    ts = ", ".join(ts_list)
-                else:
-                    ts = str(ts_list)
-                opciones_temas.append(f"[{ts}] {t.get('tema', '')}")
-            else:
-                opciones_temas.append(str(t))
 
+        st.markdown('<p style="font-size:0.8rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.5rem;">Índice de Temas</p>', unsafe_allow_html=True)
+        
+        selected_topics_info = []
+        if topic_index:
+            with st.container(height=250, border=True):
+                for idx, t in enumerate(topic_index):
+                    if isinstance(t, dict):
+                        ts_list = t.get("timestamps") or [t.get("timestamp", "00:00")]
+                        ts = ", ".join(ts_list) if isinstance(ts_list, list) else str(ts_list)
+                        tema_label = f"[{ts}] {t.get('tema', '')}"
+                    else:
+                        tema_label = str(t)
+                        ts = "00:00"
+                    
+                    is_checked = st.checkbox(tema_label, key=f"chk_tema_{idx}")
+                    if is_checked:
+                        selected_topics_info.append({
+                            "label": tema_label,
+                            "tema": t.get("tema", "") if isinstance(t, dict) else str(t),
+                            "timestamps": t.get("timestamps") or [t.get("timestamp", "00:00")] if isinstance(t, dict) else ["00:00"]
+                        })
+        else:
+            st.info("No hay índice de temas. Generalo en la pestaña FUENTE.")
+
+        # Fallback manual
         temas_sugeridos = cliente.get("temas_frecuentes", [])
-        opciones_temas.extend(temas_sugeridos)
-
-        tema_seleccionado = st.selectbox(
-            "Tema",
-            opciones_temas,
-            label_visibility="collapsed"
-        )
-
-        if tema_seleccionado == "[Libre]":
-            tema_final = st.text_input(
-                "Tema específico",
-                placeholder="Ej: Déficit fiscal heredado vs superávit",
+        if not selected_topics_info:
+            tema_seleccionado = st.selectbox(
+                "Tema Manual / Sugerido",
+                ["[Libre]"] + temas_sugeridos,
                 label_visibility="collapsed"
             )
+            if tema_seleccionado == "[Libre]":
+                tema_final = st.text_input(
+                    "Tema específico",
+                    placeholder="Ej: Déficit fiscal heredado vs superávit",
+                    label_visibility="collapsed"
+                )
+            else:
+                tema_final = st.text_input("Tema", value=tema_seleccionado, label_visibility="collapsed")
         else:
-            tema_final = st.text_input("Tema", value=tema_seleccionado,
-                                        label_visibility="collapsed")
+            tema_final_str = " | ".join([info["tema"] for info in selected_topics_info])
+            tema_final = st.text_input("Tema seleccionado", value=tema_final_str, disabled=True, label_visibility="collapsed")
 
         # Rango de transcripción
-        texto_a_usar = transcription_text
-        if segments:
-            max_time = max((s.get("end", 0.0) for s in segments), default=0.0)
-            if max_time > 5.0:
-                rango = st.slider(
-                    "Rango (segundos)",
-                    min_value=0.0, max_value=max_time,
-                    value=(0.0, max_time), step=1.0
-                )
-                filtered = [
-                    s.get("text", "") for s in segments
-                    if s.get("end", 0.0) >= rango[0] and s.get("start", 0.0) <= rango[1]
-                ]
-                texto_a_usar = " ".join(filtered).strip()
+        def parse_ts(ts_str):
+            parts = ts_str.strip().split(":")
+            if len(parts) == 2:
+                return int(parts[0]) * 60 + int(parts[1])
+            elif len(parts) == 3:
+                return int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+            return 0.0
+
+        def parse_ts_range(ts_range_str):
+            parts = ts_range_str.split("-")
+            if len(parts) == 2:
+                return parse_ts(parts[0]), parse_ts(parts[1])
             else:
-                texto_a_usar = " ".join([s.get("text", "") for s in segments]).strip()
+                s = parse_ts(parts[0])
+                return s, s + 60.0
+
+        texto_a_usar = transcription_text
+        preview_segments = []
+        if segments:
+            if selected_topics_info:
+                valid_ranges = []
+                for info in selected_topics_info:
+                    for ts_str in info["timestamps"]:
+                        valid_ranges.append(parse_ts_range(ts_str))
+                
+                filtered = []
+                for s in segments:
+                    s_mid = (s.get("start", 0.0) + s.get("end", 0.0)) / 2
+                    if any(r_start <= s_mid <= r_end for r_start, r_end in valid_ranges):
+                        filtered.append(s)
+                
+                preview_segments = filtered
+                if filtered:
+                    from src.core.markdown_builder import format_timestamp
+                    texto_a_usar = "\n".join([f"[{format_timestamp(s.get('start', 0.0))}] {s.get('text', '')}" for s in filtered])
+                else:
+                    texto_a_usar = ""
+            else:
+                max_time = max((s.get("end", 0.0) for s in segments), default=0.0)
+                if max_time > 5.0:
+                    rango = st.slider(
+                        "Rango (segundos)",
+                        min_value=0.0, max_value=max_time,
+                        value=(0.0, max_time), step=1.0
+                    )
+                    filtered = [
+                        s for s in segments
+                        if s.get("end", 0.0) >= rango[0] and s.get("start", 0.0) <= rango[1]
+                    ]
+                    texto_a_usar = " ".join([s.get("text", "") for s in filtered]).strip()
+                    preview_segments = filtered
+                else:
+                    texto_a_usar = " ".join([s.get("text", "") for s in segments]).strip()
+                    preview_segments = segments
+        else:
+            preview_segments = []
+
+
 
         duracion_val = 60
+        cantidad_slides = 5
         if red_code == "tiktok":
             duracion_val = st.select_slider(
                 "Duración (segundos)",
                 options=[30, 45, 60, 90, 180],
                 value=60
+            )
+        else:
+            cantidad_slides = st.slider(
+                "Cantidad de láminas",
+                min_value=1, max_value=10,
+                value=5
             )
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -160,28 +232,35 @@ def render_tab():
             )
 
         topic_timestamp = None
-        if tema_seleccionado != "[Libre]" and tema_seleccionado.startswith("[") and "]" in tema_seleccionado:
-            topic_timestamp = tema_seleccionado.split("]")[0].strip("[")
-
         first_time = "00:00"
-        if topic_timestamp:
-            first_time_candidate = topic_timestamp.split(",")[0].split("-")[0].strip()
-            if first_time_candidate:
-                first_time = first_time_candidate
+        if selected_topics_info:
+            all_ts = []
+            for info in selected_topics_info:
+                all_ts.extend(info["timestamps"])
+            if all_ts:
+                topic_timestamp = ", ".join(all_ts)
+                first_time = all_ts[0].split("-")[0].strip()
+        elif not selected_topics_info:
+            if tema_seleccionado != "[Libre]" and tema_seleccionado.startswith("[") and "]" in tema_seleccionado:
+                topic_timestamp = tema_seleccionado.split("]")[0].strip("[")
+                first_time = topic_timestamp.split(",")[0].split("-")[0].strip()
 
         # Generación
         if btn_generar and texto_a_usar:
             with st.spinner("Generando guion..."):
+                final_text = st.session_state.get("texto_editado", texto_a_usar) if selected_topics_info else texto_a_usar
                 try:
                     if "Video" in formato_general and topic_timestamp:
                         st.session_state["media_start_input"] = first_time
                         
                     res = generate_script(
-                        texto_fuente=texto_a_usar,
+                        texto_fuente=final_text,
                         red=red_code,
                         tema=tema_final,
                         tono=tono_code,
+                        tono_refuerzo=tono_refuerzo,
                         duracion=duracion_val,
+                        cantidad_slides=cantidad_slides,
                         cliente=cliente,
                         project_name=project_name,
                         topic_timestamp=topic_timestamp
@@ -225,7 +304,7 @@ def render_tab():
             tab_v1, tab_v2, tab_v3 = st.tabs(["Variante 1", "Variante 2", "Variante 3"])
             for idx, (tab_v, v_data) in enumerate(zip([tab_v1, tab_v2, tab_v3], variantes)):
                 with tab_v:
-                    _render_preview(v_data)
+                    _render_preview(v_data, key_suffix=str(idx))
                     if st.button(
                         f"Seleccionar variante {idx+1}",
                         key=f"btn_var_{idx}",
@@ -237,36 +316,82 @@ def render_tab():
                         st.rerun()
 
         elif guion_actual:
-            _render_preview(guion_actual)
+            _render_preview(guion_actual, key_suffix="actual")
             st.markdown("---")
 
-            st.download_button(
-                label="Descargar (.md)",
-                data=guion_actual.get("markdown", ""),
-                file_name=f"{guion_actual.get('red', 'guion')}_{slugify(guion_actual.get('titulo', 'guion'))}_{project_name}.md",
-                mime="text/markdown",
-                use_container_width=True
+            st.markdown("##### Editor de Guion (Markdown)")
+            edited_markdown = st.text_area(
+                "Guion generado (Editable)",
+                value=guion_actual.get("markdown", ""),
+                height=400,
+                label_visibility="collapsed"
             )
+            
+            if edited_markdown != guion_actual.get("markdown", ""):
+                guion_actual["markdown"] = edited_markdown
 
-            with st.expander("Ver Markdown"):
-                st.code(guion_actual.get("markdown", ""), language="markdown")
+            col_md1, col_md2 = st.columns(2)
+            with col_md1:
+                if st.button("Actualizar láminas 🔄", use_container_width=True, type="secondary"):
+                    from src.core.script_generator import update_script_from_markdown
+                    st.session_state["guion_actual"] = update_script_from_markdown(guion_actual, edited_markdown)
+                    st.session_state["visual_slides_data"] = None
+                    st.rerun()
+                    
+            with col_md2:
+                st.download_button(
+                    label="Descargar Guion Final (.md)",
+                    data=edited_markdown,
+                    file_name=f"{guion_actual.get('red', 'guion')}_{slugify(guion_actual.get('titulo', 'guion'))}_{project_name}.md",
+                    mime="text/markdown",
+                    use_container_width=True
+                )
 
         else:
-            st.markdown("""
-            <div class="exec-card" style="text-align:center; padding:2rem; color:#4B5563;">
-                <p style="font-size:0.9rem;">El guion aparecerá aquí.</p>
-            </div>
-            """, unsafe_allow_html=True)
+            if selected_topics_info:
+                if preview_segments:
+                    st.markdown("""
+                    <div class="exec-card" style="padding:1.5rem; margin-bottom:1rem;">
+                        <p style="font-size:0.85rem; font-weight:600; color:var(--accent); margin-bottom:0.75rem;">
+                            FRAGMENTOS SELECCIONADOS (EDITABLES)
+                        </p>
+                    """, unsafe_allow_html=True)
+                    
+                    texto_editado = st.text_area(
+                        "Podés editar o refinar la selección antes de generar:",
+                        value=texto_a_usar,
+                        height=250,
+                        label_visibility="collapsed"
+                    )
+                    st.session_state["texto_editado"] = texto_editado
+
+                    st.download_button(
+                        label="Descargar Selección (.md)",
+                        data=texto_editado,
+                        file_name="fragmentos_seleccionados.md",
+                        mime="text/markdown",
+                        use_container_width=True
+                    )
+                    st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    st.warning("Los temas seleccionados no tienen coincidencias exactas en la transcripción.")
+            else:
+                st.markdown("""
+                <div class="exec-card" style="text-align:center; padding:2rem; color:#4B5563;">
+                    <p style="font-size:0.9rem;">Seleccioná temas del índice para ver y editar los fragmentos correspondientes aquí.</p>
+                </div>
+                """, unsafe_allow_html=True)
 
         st.markdown("<hr style='margin:1.5rem 0; border-color:rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
         col_nav1, col_nav2 = st.columns([1, 1])
         with col_nav1:
             render_back_button("← Volver", prev_index=0)
         with col_nav2:
-            render_next_button("Siguiente →", next_index=2, disabled=not bool(guion_actual))
+            next_idx = 3 if "Video" in formato_general else 2
+            render_next_button("Siguiente →", next_index=next_idx)
 
 
-def _render_preview(guion: dict):
+def _render_preview(guion: dict, key_suffix: str = ""):
     """Enruta al renderizador visual correspondiente."""
     red = guion.get("red", "tiktok").lower()
     data = guion.get("data", {})
@@ -276,4 +401,4 @@ def _render_preview(guion: dict):
     elif red in ["x", "twitter"]:
         render_script_twitter(data)
     else:
-        render_script_social(data, red=red)
+        render_script_social(data, red=red, key_suffix=key_suffix)
