@@ -69,7 +69,7 @@ def render_tab():
     st.markdown('<p class="step-section-title">Origen del contenido</p>', unsafe_allow_html=True)
     modo_ingesta = st.radio(
         "origen",
-        ["Archivo multimedia", "URL de YouTube", "Texto directo"],
+        ["Archivo multimedia", "URL de YouTube", "URL Web (Artículo/Texto)", "Texto directo"],
         horizontal=True,
         label_visibility="collapsed"
     )
@@ -101,6 +101,16 @@ def render_tab():
         if url_input.strip():
             source_path = url_input.strip()
             source_type = "url"
+
+    elif "URL Web" in modo_ingesta:
+        url_input = st.text_input(
+            "url_web",
+            placeholder="https://es.wikipedia.org/wiki/Inteligencia_artificial",
+            label_visibility="collapsed"
+        )
+        if url_input.strip():
+            source_path = url_input.strip()
+            source_type = "web_text"
 
     else:
         direct_text = st.text_area(
@@ -151,7 +161,22 @@ def render_tab():
     if btn_transcribir and source_type:
         progress_box = st.status("Procesando...", expanded=True)
         try:
-            if source_type == "text":
+            if source_type == "web_text":
+                progress_box.write("Extrayendo texto de la web con Jina Reader...")
+                from src.core.web_scraper import extract_text_from_url
+                extracted_text = extract_text_from_url(source_path)
+                progress_box.write("Estructurando texto extraído...")
+                segments = [{"id": 0, "start": 0.0, "end": 0.0, "text": extracted_text}]
+                trans_result = {
+                    "engine_used": "Web Scraper",
+                    "language": lang_code,
+                    "elapsed_seconds": 0.5,
+                    "total_segments": 1,
+                    "total_words": len(extracted_text.split()),
+                    "segments": segments,
+                    "text": extracted_text
+                }
+            elif source_type == "text":
                 progress_box.write("Estructurando texto directo...")
                 segments = [{"id": 0, "start": 0.0, "end": 0.0, "text": direct_text.strip()}]
                 trans_result = {
@@ -183,15 +208,19 @@ def render_tab():
             st.session_state["transcription_stats"] = trans_result
             st.session_state["project_name"] = project_name
             st.session_state["source_file"] = source_path
-            if source_type != "text":
+            if source_type not in ["text", "web_text"]:
                 st.session_state["audio_path"] = audio_info.get("path")
                 if audio_info.get("original_file"):
                     st.session_state["original_media_path"] = audio_info.get("original_file")
 
             try:
                 progress_box.write("Generando índice de temas...")
-                from src.core.script_generator import generate_topic_index
-                temas = generate_topic_index(md_content)
+                if source_type in ["text", "web_text"]:
+                    from src.core.script_generator import generate_topic_index_from_text
+                    temas = generate_topic_index_from_text(md_content)
+                else:
+                    from src.core.script_generator import generate_topic_index
+                    temas = generate_topic_index(md_content)
                 st.session_state["topic_index"] = temas
             except Exception:
                 pass
@@ -259,16 +288,21 @@ def render_tab():
 
             for t in topic_index:
                 if isinstance(t, dict):
-                    ts_list = t.get("timestamps") or [t.get("timestamp", "00:00")]
-                    if isinstance(ts_list, list):
-                        ts = ", ".join(ts_list)
-                    else:
-                        ts = str(ts_list)
                     tema_txt = t.get("tema", "Tema")
+                    if "preview" in t:
+                        preview = t.get("preview", "")
+                        st.markdown(f"**{tema_txt}**<br>_{preview}_", unsafe_allow_html=True)
+                    else:
+                        ts_list = t.get("timestamps") or [t.get("timestamp", "00:00")]
+                        if isinstance(ts_list, list):
+                            ts = ", ".join(ts_list)
+                        else:
+                            ts = str(ts_list)
+                        st.markdown(f"`[{ts}]` {tema_txt}")
                 else:
                     ts = "00:00"
                     tema_txt = str(t)
-                st.markdown(f"`[{ts}]` {tema_txt}")
+                    st.markdown(f"`[{ts}]` {tema_txt}")
 
         st.markdown("<br>", unsafe_allow_html=True)
 

@@ -272,6 +272,37 @@ def generate_topic_index(texto_fuente: str) -> list[dict]:
     
     return []
 
+def generate_topic_index_from_text(texto_fuente: str) -> list[dict]:
+    """
+    Lee un texto completo (ej: artículo web) y extrae un índice de los temas clave tratados.
+    Retorna una lista de diccionarios con 'tema' y 'preview'.
+    """
+    sys_prompt = (
+        "Eres un analizador de artículos y textos web. "
+        "Tu objetivo es leer un texto completo y extraer los 5 a 10 temas principales tratados.\n"
+        "Para cada tema, debes incluir una cita textual corta o un resumen muy breve (1-2 oraciones) "
+        "como vista previa (preview).\n"
+        "Debes responder ESTRICTAMENTE con un objeto JSON válido con la siguiente estructura:\n"
+        "{\"data\": [{\"tema\": \"Título corto del tema\", \"preview\": \"Cita textual o resumen breve...\"}, ...]}"
+    )
+    
+    prompt = f"Analiza este texto y extrae el índice de temas con su vista previa:\n\n{texto_fuente}"
+    
+    res = api_manager.generate_json(
+        prompt=prompt,
+        system_prompt=sys_prompt,
+        temperature=0.2,
+        max_tokens=1500,
+        preferred_provider="gemini"
+    )
+    
+    parsed = res.get("data", {})
+    if isinstance(parsed, dict) and "data" in parsed:
+        return parsed["data"]
+    elif isinstance(parsed, list):
+        return parsed
+    
+    return []
 def update_script_from_markdown(guion_actual: dict, edited_md: str) -> dict:
     """
     Intenta extraer las secciones editadas del markdown (para láminas de carrusel y TikTok)
