@@ -199,7 +199,6 @@ def render_tab():
                 md_content = trans_result["text"]
                 
                 # Guardar el md para consistencia
-                from src.config.settings import OUTPUT_DIR
                 project_dir = OUTPUT_DIR / project_name
                 project_dir.mkdir(parents=True, exist_ok=True)
                 with open(project_dir / "transcripcion.md", "w", encoding="utf-8") as f:
