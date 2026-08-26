@@ -194,13 +194,24 @@ def render_tab():
                 progress_box.write(f"Transcribiendo con {motor_seleccionado}...")
                 trans_result = transcribe(audio_info["path"], language=lang_code, engine=engine_param)
 
-            progress_box.write("Construyendo documento Markdown estructurado...")
-            md_content = build_markdown(
-                trans_result["segments"],
-                project=project_name,
-                title=f"Transcripción — {project_name.replace('_', ' ').title()}",
-                engine_used=trans_result["engine_used"]
-            )
+            if source_type in ["text", "web_text"]:
+                progress_box.write("Preparando documento Markdown...")
+                md_content = trans_result["text"]
+                
+                # Guardar el md para consistencia
+                from src.config.settings import OUTPUT_DIR
+                project_dir = OUTPUT_DIR / project_name
+                project_dir.mkdir(parents=True, exist_ok=True)
+                with open(project_dir / "transcripcion.md", "w", encoding="utf-8") as f:
+                    f.write(md_content)
+            else:
+                progress_box.write("Construyendo documento Markdown estructurado...")
+                md_content = build_markdown(
+                    trans_result["segments"],
+                    project=project_name,
+                    title=f"Transcripción — {project_name.replace('_', ' ').title()}",
+                    engine_used=trans_result["engine_used"]
+                )
 
             st.session_state["segments"] = trans_result["segments"]
             st.session_state["transcription_text"] = trans_result["text"]

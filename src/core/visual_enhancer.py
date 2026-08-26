@@ -136,7 +136,7 @@ BRIEF ORIGINAL:
 REGLAS DE MEJORA:
 1. Reescribí la sección "Guion Narrativo Base" con lenguaje más natural, emotivo y directo. Conservá todos los datos y hechos.
 2. Enriquecí la sección "Estructura de Contenido": {instruccion_tecnica}
-3. Expandí la "Instrucción al LLM" con instrucciones técnicas específicas para la plataforma '{red_social}' en formato {dimensiones}, usando la línea estética '{estilo_nombre}' ({estilo_uso}).
+3. Expandí la "Instrucción al LLM" con instrucciones técnicas específicas para la plataforma '{red_social}' en formato {dimensiones}, usando la línea estética '{estilo_nombre}' ({estilo_uso}). IMPORTANTE: Indicá explícitamente que se deben generar los prompts estrictamente para la cantidad de elementos presentes en la tabla original (no inventes cantidades).
 4. Agregá una nueva sección al final: "## Referentes Visuales" con 3 referencias de estilo concretas (director de cine, marca, campaña política o artista gráfico reconocido).
 
 FORMATO DE SALIDA:
