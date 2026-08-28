@@ -8,6 +8,7 @@ from src.core.media_cutter import MediaCutter, format_timestamp_srt, format_time
 from src.core.audio_extractor import get_audio_info, check_ffmpeg
 from src.config.settings import TEMP_DIR, OUTPUT_DIR
 from src.ui.components import render_step_header, render_next_button, render_back_button
+from src.core.remotion_engine import RemotionEngine
 
 
 def parse_time_str(time_str: str) -> float:
@@ -284,6 +285,45 @@ def render_tab():
         })
         st.success("¡Subtítulos WebVTT (.vtt) generados con éxito!")
         st.rerun()
+
+    # 5.5 Motor de Renderizado Remotion
+    st.markdown('<p class="step-section-title" style="margin-top: 1rem;">Motor de Renderizado IA (Remotion)</p>', unsafe_allow_html=True)
+    st.info("Ensambla las imágenes, animaciones, audios y subtítulos en un video nativo usando React.")
+    btn_render_remotion = st.button("Renderizar Video Completo (Remotion)", type="primary", use_container_width=True)
+
+    if btn_render_remotion:
+        engine = RemotionEngine()
+        props_data = {
+            "project_name": project_name,
+            "visual_brief": st.session_state.get("visual_brief_prompt", ""),
+            "segments": segments,
+            "audio_path": source_file,
+            "client": st.session_state.get("client", {})
+        }
+        
+        props_path = OUTPUT_DIR / project_name / "props.json"
+        out_path = OUTPUT_DIR / project_name / "remotion_render.mp4"
+        
+        with st.spinner("Renderizando video en Node.js (Remotion)..."):
+            try:
+                engine.export_props(props_data, str(props_path))
+                res = engine.render_video(str(props_path), str(out_path))
+                
+                size_mb = 0
+                if out_path.exists():
+                    size_mb = round(out_path.stat().st_size / (1024 * 1024), 2)
+
+                st.session_state["exported_media"].insert(0, {
+                    "tipo": "video_remotion",
+                    "nombre": out_path.name,
+                    "path": str(out_path),
+                    "size_mb": size_mb,
+                    "duration": duracion_clip
+                })
+                st.success("¡Video renderizado con éxito desde Remotion!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Fallo Remotion: {e}")
 
     # 6. Historial de Recursos Exportados
     st.markdown("---")
