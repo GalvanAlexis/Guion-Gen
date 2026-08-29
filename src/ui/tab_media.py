@@ -506,7 +506,13 @@ def render_tab():
                         "duracion_seg": dur,
                     }
                     if idx in img_path_map and Path(img_path_map[idx]).exists():
-                        scene["imagen_path"] = img_path_map[idx]
+                        try:
+                            import base64
+                            with open(img_path_map[idx], "rb") as img_file:
+                                b64_data = base64.b64encode(img_file.read()).decode("utf-8")
+                                scene["imagen_path"] = f"data:image/png;base64,{b64_data}"
+                        except Exception:
+                            scene["imagen_path"] = img_path_map[idx]
                     scenes.append(scene)
 
                 engine = RemotionEngine()
