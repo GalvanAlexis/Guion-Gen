@@ -37,7 +37,7 @@ def test_generate_background_fallback_on_error(tmp_path):
     renderer = AIRenderer(cache_dir=tmp_path)
 
     original_import = __import__
-    
+
     def mock_import(name, globals=None, locals=None, fromlist=(), level=0):
         if name == "google" and "genai" in fromlist:
             mock_google = MagicMock()
@@ -49,9 +49,9 @@ def test_generate_background_fallback_on_error(tmp_path):
 
     with patch("builtins.__import__", side_effect=mock_import):
         with patch.dict(os.environ, {"GOOGLE_GEMINI_API_KEY": "fake_key"}, clear=False):
-            with pytest.raises(RuntimeError) as exc:
-                renderer.generate_background(tema="tema inexistente", tono="urgente", use_cache=False)
-            assert "API Quota exceeded" in str(exc.value)
+            result = renderer.generate_background(tema="tema inexistente", tono="urgente", use_cache=False)
+            # generate_background captura la excepcion internamente y retorna None de forma segura
+            assert result is None
 
 def test_get_background_b64(tmp_path):
     """Verifica la codificación Base64 cuando hay imagen disponible."""
