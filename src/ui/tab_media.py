@@ -339,7 +339,10 @@ def render_tab():
                 status_box = st.status("Generando imagenes...", expanded=True)
 
                 results = []
+                quota_error = False
                 for i, item in enumerate(brief_items):
+                    if quota_error:
+                        break
                     progress_bar.progress(
                         (i) / len(brief_items),
                         text=f"Generando lamina {i+1}/{len(brief_items)}..."
@@ -372,12 +375,29 @@ def render_tab():
                     )
                     results.append(res)
 
-                progress_bar.progress(1.0, text="Generacion completada.")
-                status_box.update(label="Imagenes generadas", state="complete", expanded=False)
+                    # Detectar error de cuota para abortar el loop y avisar al usuario
+                    if res.get("status") == "error":
+                        err_str = res.get("error", "")
+                        if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "quota" in err_str.lower():
+                            quota_error = True
 
-                # Persistir rutas para que el modo Video pueda usarlas
-                st.session_state["generated_images"] = results
-                st.rerun()
+                if quota_error:
+                    progress_bar.empty()
+                    status_box.update(label="Cuota de API agotada", state="error", expanded=False)
+                    st.error(
+                        "**Cuota de generacion de imagenes agotada (429).**\n\n"
+                        "La API de Google AI Studio tiene un limite diario bajo en el free tier. "
+                        "Opciones:\n"
+                        "- Reintenta en unos minutos / manana cuando se renueve la cuota\n"
+                        "- Activa billing en Google Cloud para usar `imagen-3.0-generate-001` sin limite\n\n"
+                        "Mientras tanto, podes usar el **Modo Video** en Remotion que no requiere API de imagen."
+                    )
+                else:
+                    progress_bar.progress(1.0, text="Generacion completada.")
+                    status_box.update(label="Imagenes generadas", state="complete", expanded=False)
+                    # Persistir rutas para que el modo Video pueda usarlas
+                    st.session_state["generated_images"] = results
+                    st.rerun()
 
             # Mostrar imagenes ya generadas
             generated = st.session_state.get("generated_images", [])

@@ -11,7 +11,7 @@ class ImageRenderer:
     Soporta el modelo imagen-3.0-generate-001.
     """
 
-    IMAGE_MODEL = "imagen-3.0-generate-001"
+    IMAGE_MODEL = "gemini-3.1-flash-image"
 
     def __init__(self):
         self._client = None
@@ -81,21 +81,22 @@ class ImageRenderer:
         start = time.time()
 
         try:
-            aspect_ratio = "3:4" if (width == 1080 and height == 1350) else ("9:16" if height > width else "1:1")
-            
-            result = client.models.generate_images(
+            from google.genai import types as genai_types
+
+            response = client.models.generate_content(
                 model=self.IMAGE_MODEL,
-                prompt=full_prompt,
-                config=dict(
-                    number_of_images=1,
-                    aspect_ratio=aspect_ratio,
-                    output_mime_type="image/png"
-                )
+                contents=full_prompt,
+                config=genai_types.GenerateContentConfig(
+                    response_modalities=["IMAGE", "TEXT"],
+                ),
             )
 
             image_data = None
-            if result and result.generated_images:
-                image_data = result.generated_images[0].image.image_bytes
+            for part in response.candidates[0].content.parts:
+                if part.inline_data and part.inline_data.mime_type.startswith("image/"):
+                    import base64 as _b64
+                    image_data = _b64.b64decode(part.inline_data.data)
+                    break
 
             if image_data is None:
                 raise RuntimeError(
