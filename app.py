@@ -31,6 +31,8 @@ if "initialized" not in st.session_state:
             with open(SESSION_DUMP_FILE, "r", encoding="utf-8") as f:
                 dump = json.load(f)
                 for k, v in dump.items():
+                    if k.startswith("dl_") or k.startswith("btn_"):
+                        continue
                     st.session_state[k] = v
         except Exception:
             pass
@@ -95,6 +97,8 @@ elif current_index == 4:
 try:
     state_to_dump = {}
     for k, v in st.session_state.items():
+        if k.startswith("dl_") or k.startswith("btn_"):
+            continue
         if type(v) in (str, int, float, bool, dict, list, type(None)):
             state_to_dump[k] = v
     SESSION_DUMP_FILE.parent.mkdir(parents=True, exist_ok=True)
