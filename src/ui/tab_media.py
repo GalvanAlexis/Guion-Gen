@@ -286,44 +286,233 @@ def render_tab():
         st.success("¡Subtítulos WebVTT (.vtt) generados con éxito!")
         st.rerun()
 
-    # 5.5 Motor de Renderizado Remotion
-    st.markdown('<p class="step-section-title" style="margin-top: 1rem;">Motor de Renderizado IA (Remotion)</p>', unsafe_allow_html=True)
-    st.info("Ensambla las imágenes, animaciones, audios y subtítulos en un video nativo usando React.")
-    btn_render_remotion = st.button("Renderizar Video Completo (Remotion)", type="primary", use_container_width=True)
+    # 5.5 Producción IA desde Brief Visual (Imagen o Video)
+    st.markdown("---")
+    st.markdown('<p class="step-section-title">Produccion IA — Brief Visual</p>', unsafe_allow_html=True)
 
-    if btn_render_remotion:
-        engine = RemotionEngine()
-        props_data = {
-            "project_name": project_name,
-            "visual_brief": st.session_state.get("visual_brief_prompt", ""),
-            "segments": segments,
-            "audio_path": source_file,
-            "client": st.session_state.get("client", {})
-        }
-        
-        props_path = OUTPUT_DIR / project_name / "props.json"
-        out_path = OUTPUT_DIR / project_name / "remotion_render.mp4"
-        
-        with st.spinner("Renderizando video en Node.js (Remotion)..."):
-            try:
-                engine.export_props(props_data, str(props_path))
-                res = engine.render_video(str(props_path), str(out_path))
-                
-                size_mb = 0
-                if out_path.exists():
-                    size_mb = round(out_path.stat().st_size / (1024 * 1024), 2)
+    brief_tipo = st.session_state.get("brief_tipo_contenido", "")
+    brief_items = st.session_state.get("brief_items_list", [])
+    brief_estilo = st.session_state.get("brief_estilo", {})
+    brief_dimensiones = st.session_state.get("brief_dimensiones", "4:5 (1080x1350)")
+    brief_red = st.session_state.get("brief_red_social", "")
 
-                st.session_state["exported_media"].insert(0, {
-                    "tipo": "video_remotion",
-                    "nombre": out_path.name,
-                    "path": str(out_path),
-                    "size_mb": size_mb,
-                    "duration": duracion_clip
-                })
-                st.success("¡Video renderizado con éxito desde Remotion!")
+    if not brief_tipo or not brief_items:
+        st.info(
+            "No hay un Brief Visual generado todavia. "
+            "Ir a la pestana **Director Creativo** (Tab 3) para definir el tipo de contenido, "
+            "estilo y estructura antes de producir."
+        )
+    else:
+        # Resumen del brief
+        r1, r2, r3 = st.columns(3)
+        r1.metric("Tipo", brief_tipo)
+        r2.metric("Red Social", brief_red or "—")
+        r3.metric("Elementos", len(brief_items))
+        st.caption(f"Estilo: **{brief_estilo.get('nombre', '—')}** | Dimensiones: `{brief_dimensiones}`")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── MODO IMAGEN ──────────────────────────────────────────────────────
+        if brief_tipo == "Imagen":
+            st.markdown('<p class="step-section-title">Modo Imagen — Generar Laminas</p>', unsafe_allow_html=True)
+
+            # Previsualizar las laminas planificadas
+            with st.expander("Laminas del brief", expanded=False):
+                for item in brief_items:
+                    nro = item.get("Nro", "?")
+                    titulo = item.get("Titulo", item.get("Título", "Sin titulo"))
+                    desc = item.get("Descripcion Visual", item.get("Descripción Visual", ""))
+                    st.markdown(f"**{nro}. {titulo}**")
+                    if desc:
+                        st.caption(desc)
+
+            btn_generar_imgs = st.button(
+                f"Generar {len(brief_items)} imagen(es) con IA",
+                type="primary",
+                use_container_width=True
+            )
+
+            if btn_generar_imgs:
+                from src.core.image_renderer import ImageRenderer
+                renderer = ImageRenderer()
+
+                progress_bar = st.progress(0, text="Iniciando generacion de imagenes...")
+                status_box = st.status("Generando imagenes...", expanded=True)
+
+                results = []
+                for i, item in enumerate(brief_items):
+                    progress_bar.progress(
+                        (i) / len(brief_items),
+                        text=f"Generando lamina {i+1}/{len(brief_items)}..."
+                    )
+                    nro = i + 1
+                    titulo = item.get("Titulo", item.get("Título", f"Lamina {nro}"))
+                    desc = item.get("Descripcion Visual", item.get("Descripción Visual", ""))
+                    dato = item.get("Dato / Metrica Clave", item.get("Dato / Métrica Clave", ""))
+                    estilo_nombre = brief_estilo.get("nombre", "Editorial")
+
+                    img_prompt = (
+                        f"Estilo visual: {estilo_nombre}. "
+                        f"Titulo de la lamina: '{titulo}'. "
+                        f"Composicion visual: {desc}. "
+                        + (f"Dato clave: {dato}." if dato else "")
+                    )
+
+                    width, height = 1080, 1350
+                    if "1080x1920" in brief_dimensiones: width, height = 1080, 1920
+                    elif "1080x1080" in brief_dimensiones: width, height = 1080, 1080
+                    elif "1920x1080" in brief_dimensiones: width, height = 1920, 1080
+
+                    status_box.write(f"Lamina {nro}: {titulo[:50]}...")
+                    res = renderer.render_slide(
+                        prompt=img_prompt,
+                        index=nro,
+                        project_name=project_name,
+                        width=width,
+                        height=height
+                    )
+                    results.append(res)
+
+                progress_bar.progress(1.0, text="Generacion completada.")
+                status_box.update(label="Imagenes generadas", state="complete", expanded=False)
+
+                # Persistir rutas para que el modo Video pueda usarlas
+                st.session_state["generated_images"] = results
                 st.rerun()
-            except Exception as e:
-                st.error(f"Fallo Remotion: {e}")
+
+            # Mostrar imagenes ya generadas
+            generated = st.session_state.get("generated_images", [])
+            if generated:
+                st.markdown('<p class="step-section-title">Imagenes generadas</p>', unsafe_allow_html=True)
+
+                cols_grid = st.columns(min(len(generated), 4))
+                for idx, res in enumerate(generated):
+                    col = cols_grid[idx % 4]
+                    img_path = Path(res["path"])
+                    with col:
+                        if img_path.exists():
+                            st.image(str(img_path), caption=f"Lamina {res['index']}", use_container_width=True)
+                            if res.get("status") == "error":
+                                st.caption(f"Error: {res.get('error', '')[:60]}")
+                        else:
+                            st.caption(f"Lamina {res['index']} — archivo no encontrado")
+
+                # Descarga en ZIP
+                import zipfile, io
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                    for res in generated:
+                        p = Path(res["path"])
+                        if p.exists():
+                            zf.write(p, p.name)
+                zip_buffer.seek(0)
+                st.download_button(
+                    label=f"Descargar todas las laminas (.zip)",
+                    data=zip_buffer,
+                    file_name=f"laminas_{project_name}.zip",
+                    mime="application/zip",
+                    use_container_width=True
+                )
+
+                # Agregar al historial
+                for res in generated:
+                    already = any(m["path"] == res["path"] for m in st.session_state["exported_media"])
+                    if not already and Path(res["path"]).exists():
+                        st.session_state["exported_media"].insert(0, {
+                            "tipo": "imagen_lamina",
+                            "nombre": Path(res["path"]).name,
+                            "path": res["path"],
+                            "duration": 0,
+                            "size_mb": res.get("size_mb", 0),
+                        })
+
+        # ── MODO VIDEO ───────────────────────────────────────────────────────
+        else:
+            st.markdown('<p class="step-section-title">Modo Video — Renderizar con Remotion</p>', unsafe_allow_html=True)
+
+            generated_images = st.session_state.get("generated_images", [])
+            has_images = bool(generated_images and all(
+                Path(r["path"]).exists() for r in generated_images
+            ))
+
+            if not has_images:
+                st.warning(
+                    "Para incrustar imagenes reales en el video, primero generalas "
+                    "en el **Modo Imagen** (cambia el tipo a 'Imagen' en Tab 3, genera y vuelve aca). "
+                    "O renderizas el video con fondos de color solamente."
+                )
+
+            # Previsualizar las escenas
+            with st.expander("Escenas del brief", expanded=False):
+                for item in brief_items:
+                    nro = item.get("Nro", "?")
+                    desc = item.get("Descripcion Visual", item.get("Descripción Visual", ""))
+                    texto = item.get("Texto en Pantalla", "")
+                    dur = item.get("Duracion (s)", item.get("Duración (s)", 5))
+                    st.markdown(f"**Escena {nro}** — `{dur}s`")
+                    if desc: st.caption(f"Visual: {desc[:80]}")
+                    if texto: st.caption(f"Texto: {texto[:60]}")
+
+            btn_render = st.button(
+                "Renderizar Video Completo (Remotion)",
+                type="primary",
+                use_container_width=True
+            )
+
+            if btn_render:
+                # Construir scenes con rutas de imagenes si existen
+                scenes = []
+                img_path_map = {r["index"]: r["path"] for r in generated_images} if generated_images else {}
+                for i, item in enumerate(brief_items):
+                    idx = i + 1
+                    dur_raw = item.get("Duracion (s)", item.get("Duración (s)", 5))
+                    try:
+                        dur = float(str(dur_raw).strip()) if dur_raw else 5.0
+                    except (ValueError, TypeError):
+                        dur = 5.0
+                    scene = {
+                        "index": idx,
+                        "titulo": item.get("Titulo", item.get("Título", f"Escena {idx}")),
+                        "descripcion": item.get("Descripcion Visual", item.get("Descripción Visual", "")),
+                        "texto_pantalla": item.get("Texto en Pantalla", ""),
+                        "duracion_seg": dur,
+                    }
+                    if idx in img_path_map and Path(img_path_map[idx]).exists():
+                        scene["imagen_path"] = img_path_map[idx]
+                    scenes.append(scene)
+
+                engine = RemotionEngine()
+                props_data = {
+                    "project_name": project_name,
+                    "tipo_contenido": "Video",
+                    "scenes": scenes,
+                    "estilo": brief_estilo,
+                    "dimensiones": brief_dimensiones,
+                    "fps": 30
+                }
+
+                props_path = OUTPUT_DIR / project_name / "props.json"
+                out_path = OUTPUT_DIR / project_name / "remotion_render.mp4"
+
+                with st.spinner("Renderizando video en Node.js (Remotion)..."):
+                    try:
+                        engine.export_props(props_data, str(props_path))
+                        res = engine.render_video(str(props_path), str(out_path))
+
+                        size_mb = 0
+                        if out_path.exists():
+                            size_mb = round(out_path.stat().st_size / (1024 * 1024), 2)
+
+                        st.session_state["exported_media"].insert(0, {
+                            "tipo": "video_remotion",
+                            "nombre": out_path.name,
+                            "path": str(out_path),
+                            "size_mb": size_mb,
+                            "duration": sum(s.get("duracion_seg", 5) for s in scenes)
+                        })
+                        st.success(f"Video renderizado con exito ({size_mb} MB)")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Fallo Remotion: {e}")
 
     # 6. Historial de Recursos Exportados
     st.markdown("---")

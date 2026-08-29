@@ -111,6 +111,17 @@ def render_tab():
         
         df_editado = st.data_editor(st.session_state[df_key], use_container_width=True, hide_index=True)
         st.session_state[df_key] = df_editado
+
+        # Persistir metadatos del brief para que Tab 4 (MEDIA) pueda leerlos
+        st.session_state["brief_tipo_contenido"] = tipo_contenido
+        st.session_state["brief_red_social"] = red_social
+        st.session_state["brief_dimensiones"] = dimensiones
+        st.session_state["brief_estilo"] = estilo_seleccionado
+        # Convertir DataFrame a lista de dicts (serializable y legible por Tab 4)
+        try:
+            st.session_state["brief_items_list"] = df_editado.fillna("").to_dict(orient="records")
+        except Exception:
+            st.session_state["brief_items_list"] = []
             
         # Tiempo total (solo video)
         if tipo_contenido == "Video":
