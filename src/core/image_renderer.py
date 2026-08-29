@@ -8,10 +8,10 @@ from pathlib import Path
 class ImageRenderer:
     """
     Genera imagenes PNG para cada lamina del brief visual usando la API de Gemini.
-    Soporta el modelo gemini-2.0-flash-preview-image-generation.
+    Soporta el modelo imagen-3.0-generate-001.
     """
 
-    IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation"
+    IMAGE_MODEL = "imagen-3.0-generate-001"
 
     def __init__(self):
         self._client = None
@@ -81,21 +81,21 @@ class ImageRenderer:
         start = time.time()
 
         try:
-            from google.genai import types as genai_types
-
-            response = client.models.generate_content(
+            aspect_ratio = "3:4" if (width == 1080 and height == 1350) else ("9:16" if height > width else "1:1")
+            
+            result = client.models.generate_images(
                 model=self.IMAGE_MODEL,
-                contents=full_prompt,
-                config=genai_types.GenerateContentConfig(
-                    response_modalities=["IMAGE", "TEXT"],
-                ),
+                prompt=full_prompt,
+                config=dict(
+                    number_of_images=1,
+                    aspect_ratio=aspect_ratio,
+                    output_mime_type="image/png"
+                )
             )
 
             image_data = None
-            for part in response.candidates[0].content.parts:
-                if part.inline_data and part.inline_data.mime_type.startswith("image/"):
-                    image_data = base64.b64decode(part.inline_data.data)
-                    break
+            if result and result.generated_images:
+                image_data = result.generated_images[0].image.image_bytes
 
             if image_data is None:
                 raise RuntimeError(
