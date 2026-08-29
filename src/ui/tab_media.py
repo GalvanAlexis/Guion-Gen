@@ -324,6 +324,12 @@ def render_tab():
                     st.markdown(f"**{nro}. {titulo}**")
                     if desc:
                         st.caption(desc)
+            
+            use_fallback_ui = st.checkbox(
+                "Usar Diseño Gráfico Local Premium (Ahorra 100% cuota IA)", 
+                value=True, 
+                help="Renderiza imágenes hermosas sin usar la API de Google, ideal si no tenés saldo."
+            )
 
             btn_generar_imgs = st.button(
                 f"Generar {len(brief_items)} imagen(es) con IA",
@@ -371,7 +377,10 @@ def render_tab():
                         index=nro,
                         project_name=project_name,
                         width=width,
-                        height=height
+                        height=height,
+                        slide_data=item,
+                        estilo=brief_estilo,
+                        force_fallback=use_fallback_ui
                     )
                     results.append(res)
 

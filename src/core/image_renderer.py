@@ -44,6 +44,9 @@ class ImageRenderer:
         output_dir=None,
         width: int = 1080,
         height: int = 1350,
+        slide_data: dict = None,
+        estilo: dict = None,
+        force_fallback: bool = False
     ) -> dict:
         """
         Genera una imagen PNG para una lamina del brief.
@@ -76,6 +79,9 @@ class ImageRenderer:
             "Photorealistic, high quality, social media ready, "
             "clean composition, professional lighting."
         )
+
+        if force_fallback:
+            return self._fallback_render(index, dest_path, width, height, slide_data, estilo, full_prompt)
 
         client = self._get_client()
         start = time.time()
@@ -118,6 +124,11 @@ class ImageRenderer:
             }
 
         except Exception as e:
+            err_str = str(e).lower()
+            if "429" in err_str or "quota" in err_str or "resource_exhausted" in err_str:
+                # Disparar fallback local si hay error de cuota
+                return self._fallback_render(index, dest_path, width, height, slide_data, estilo, full_prompt, err_msg=str(e))
+                
             placeholder = self._generate_placeholder(index, str(e), dest_path, width, height)
             return {
                 "status": "error",
@@ -126,6 +137,98 @@ class ImageRenderer:
                 "prompt_usado": full_prompt,
                 "index": index,
                 "error": str(e),
+                "elapsed_sec": round(time.time() - start, 2),
+            }
+
+    def _fallback_render(self, index, dest_path, width, height, slide_data, estilo, prompt_usado, err_msg=None):
+        """Renderiza una card de alta calidad usando Playwright (sin usar API)."""
+        start = time.time()
+        try:
+            from playwright.sync_api import sync_playwright
+            
+            slide_data = slide_data or {}
+            estilo = estilo or {}
+            
+            titulo = slide_data.get("Titulo", slide_data.get("Título", f"Lamina {index}"))
+            desc = slide_data.get("Descripcion Visual", slide_data.get("Descripción Visual", ""))
+            dato = slide_data.get("Dato / Metrica Clave", slide_data.get("Dato / Métrica Clave", ""))
+            estilo_nombre = estilo.get("nombre", "Diseño Premium")
+            
+            bg_color = "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)"
+            text_color = "#f8fafc"
+            accent_color = "#38bdf8"
+            if "alerta" in estilo_nombre.lower() or "roja" in estilo_nombre.lower():
+                bg_color = "linear-gradient(135deg, #450a0a 0%, #000000 100%)"
+                accent_color = "#ef4444"
+            elif "lla" in estilo_nombre.lower() or "libertad" in estilo_nombre.lower():
+                bg_color = "linear-gradient(135deg, #020617 0%, #172554 100%)"
+                accent_color = "#facc15"
+                
+            html_content = f'''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+                    body {{
+                        margin: 0; padding: 0; width: {width}px; height: {height}px;
+                        background: {bg_color}; color: {text_color};
+                        font-family: 'Inter', sans-serif;
+                        display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+                        box-sizing: border-box; padding: 80px;
+                    }}
+                    .container {{
+                        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+                        border-radius: 40px; padding: 80px; backdrop-filter: blur(20px);
+                        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 900px;
+                    }}
+                    h1 {{ font-size: 70px; font-weight: 900; margin: 0 0 40px 0; line-height: 1.2; letter-spacing: -2px; text-wrap: balance; }}
+                    p.desc {{ font-size: 40px; font-weight: 400; color: rgba(255,255,255,0.8); margin: 0 0 60px 0; line-height: 1.4; text-wrap: balance; }}
+                    .dato {{
+                        font-size: 50px; font-weight: 700; color: {accent_color};
+                        background: rgba(0,0,0,0.3); padding: 30px 60px; border-radius: 20px; display: inline-block;
+                        border-bottom: 4px solid {accent_color};
+                    }}
+                    .badge {{ position: absolute; top: 50px; left: 50px; font-size: 30px; font-weight: 700; color: {accent_color}; letter-spacing: 4px; text-transform: uppercase; }}
+                </style>
+            </head>
+            <body>
+                <div class="badge">{estilo_nombre}</div>
+                <div class="container">
+                    <h1>{titulo}</h1>
+                    {f'<p class="desc">{desc}</p>' if desc else ''}
+                    {f'<div class="dato">{dato}</div>' if dato else ''}
+                </div>
+            </body>
+            </html>
+            '''
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.set_content(html_content)
+                page.wait_for_load_state("networkidle")
+                page.screenshot(path=str(dest_path))
+                browser.close()
+                
+            return {
+                "status": "fallback_success",
+                "path": str(dest_path),
+                "size_mb": round(dest_path.stat().st_size / (1024 * 1024), 2),
+                "prompt_usado": prompt_usado,
+                "index": index,
+                "elapsed_sec": round(time.time() - start, 2),
+                "error": err_msg
+            }
+        except Exception as ex:
+            placeholder = self._generate_placeholder(index, str(ex), dest_path, width, height)
+            return {
+                "status": "error",
+                "path": str(placeholder),
+                "size_mb": 0.001,
+                "prompt_usado": prompt_usado,
+                "index": index,
+                "error": f"API + Fallback failed: {str(ex)}",
                 "elapsed_sec": round(time.time() - start, 2),
             }
 
